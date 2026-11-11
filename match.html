@@ -1,0 +1,208 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Join a match · Padeja</title>
+<meta property="og:title" content="Join a padel match on Padeja">
+<meta property="og:description" content="Someone's looking for players — tap to join.">
+<meta name="theme-color" content="#0A1624">
+<style>
+  :root{--bg:#0A1624;--bg2:#0D1B2E;--card:#162035;--line:#1E3050;--brand:#3BC8F5;
+    --sec:#8AA4C0;--white:#F3F7FB;--win:#3DE39E;--loss:#F56040;--green:#25D366;}
+  *{box-sizing:border-box}
+  html,body{margin:0;background:linear-gradient(160deg,#0b1a2e,#0a1322);min-height:100%}
+  body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    color:var(--white);padding:22px 16px 50px;display:flex;justify-content:center}
+  .wrap{width:100%;max-width:440px}
+  .brand{display:flex;align-items:center;gap:8px;justify-content:center;margin-bottom:18px;color:var(--brand);font-weight:800;letter-spacing:.5px}
+  .brand .dot{width:22px;height:22px;border-radius:7px;background:linear-gradient(135deg,#3BC8F5,#2aa8d8)}
+  .card{background:var(--card);border:1px solid var(--line);border-radius:18px;overflow:hidden;box-shadow:0 18px 40px rgba(0,0,0,.4)}
+  .top{padding:20px;background:linear-gradient(135deg,#16314f,#0d1b2e)}
+  .venue{font-size:19px;font-weight:800;line-height:1.25}
+  .when{color:var(--brand);font-weight:700;font-size:14px;margin-top:5px}
+  .host{color:var(--sec);font-size:13px;margin-top:10px}
+  .body{padding:20px}
+  .spotbar{display:flex;align-items:center;gap:10px;margin-bottom:16px}
+  .count{font-size:15px;font-weight:800;white-space:nowrap}
+  .count small{color:var(--sec);font-weight:600}
+  .bar{flex:1;height:8px;border-radius:8px;background:#20304a;overflow:hidden}
+  .bar>span{display:block;height:100%;background:var(--win);width:0;transition:width .4s}
+  .players{display:flex;flex-direction:column;gap:9px;margin-bottom:8px}
+  .pl{display:flex;align-items:center;gap:11px;font-size:14px}
+  .av{width:30px;height:30px;border-radius:50%;background:#24405f;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:#cde6ff;flex:0 0 auto;overflow:hidden}
+  .av img{width:100%;height:100%;object-fit:cover}
+  .pl.empty{color:#56738f}
+  .pl.empty .av{background:transparent;border:1px dashed #34506e}
+  .tag{font-size:9px;font-weight:800;color:var(--brand);background:rgba(59,200,245,.15);padding:2px 7px;border-radius:999px;margin-left:auto}
+  .tag.guest{color:var(--sec);background:#17273c}
+  .chips{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0 4px}
+  .chip{font-size:11px;color:var(--sec);background:#17273c;border:1px solid var(--line);padding:5px 10px;border-radius:999px}
+  .notes{color:#cdddec;font-size:13px;line-height:1.5;margin:12px 0 0;padding:12px;background:var(--bg2);border:1px solid var(--line);border-radius:10px}
+  .join{margin-top:18px}
+  .lbl{font-size:10px;font-weight:800;letter-spacing:1px;color:var(--sec);text-transform:uppercase;margin-bottom:7px}
+  input[type=text]{width:100%;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:13px 14px;font-size:15px;color:var(--white)}
+  input[type=text]::placeholder{color:#5f7a94}
+  .btn{display:block;width:100%;text-align:center;border:none;border-radius:13px;padding:15px;font-size:15px;font-weight:800;cursor:pointer;margin-top:12px}
+  .btn.primary{background:var(--brand);color:#06131f}
+  .btn.app{background:transparent;color:var(--brand);border:1px solid var(--line);font-weight:700;font-size:13px}
+  .msg{text-align:center;font-weight:800;font-size:16px;padding:16px;border-radius:13px;margin-top:4px}
+  .msg.ok{color:var(--win);background:rgba(61,227,158,.08);border:1px solid rgba(61,227,158,.4)}
+  .msg.full{color:var(--win);background:rgba(61,227,158,.08);border:1px solid rgba(61,227,158,.4)}
+  .err{color:var(--loss);font-size:13px;text-align:center;margin-top:10px;min-height:16px}
+  .foot{text-align:center;color:var(--sec);font-size:12px;margin-top:20px;line-height:1.6}
+  .foot a{color:var(--brand);text-decoration:none}
+  .hidden{display:none}
+  .skeleton{color:var(--sec);text-align:center;padding:50px 0}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="brand"><span class="dot"></span><span>PADEJA</span></div>
+
+  <div id="loading" class="skeleton">Loading match…</div>
+
+  <div id="notfound" class="card hidden">
+    <div class="body" style="text-align:center">
+      <div style="font-size:40px">🤔</div>
+      <h2 style="margin:10px 0 6px">Match not found</h2>
+      <p style="color:var(--sec);font-size:14px">This link may be wrong or the match was cancelled.</p>
+    </div>
+  </div>
+
+  <div id="match" class="card hidden">
+    <div class="top">
+      <div class="venue" id="venue">—</div>
+      <div class="when" id="when">—</div>
+      <div class="host" id="host">—</div>
+    </div>
+    <div class="body">
+      <div class="spotbar">
+        <div class="count"><span id="pcount">0</span><small>/<span id="cap">4</span> players</small></div>
+        <div class="bar"><span id="barfill"></span></div>
+        <div class="count" style="color:var(--win)"><span id="left">0</span> <small>left</small></div>
+      </div>
+      <div class="players" id="players"></div>
+      <div class="chips" id="chips"></div>
+      <div class="notes hidden" id="notes"></div>
+
+      <div class="join" id="joinArea">
+        <div class="lbl">Join this match</div>
+        <input type="text" id="guestName" placeholder="Your name" autocomplete="name" maxlength="40">
+        <button class="btn primary" id="joinBtn" onclick="joinGuest()">Join the match</button>
+        <button class="btn app" id="appBtn" onclick="openApp()">On Padeja? Open in the app</button>
+        <div class="err" id="err"></div>
+      </div>
+
+      <div class="msg ok hidden" id="joinedMsg">🎾 You're in — see you on court!</div>
+      <div class="msg full hidden" id="fullMsg">This match is full 🎉</div>
+      <div class="msg full hidden" id="cancelledMsg" style="color:var(--loss);background:rgba(245,96,64,.08);border-color:rgba(245,96,64,.4)">This match has been cancelled.</div>
+    </div>
+  </div>
+
+  <div class="foot">
+    New to Padeja? <a href="https://app.padeja.com" target="_blank">Get the app</a> to host your own matches.
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2.45.4/dist/umd/supabase.min.js"></script>
+<script>
+  const SUPABASE_URL = 'https://odrckirnjavfptlfygbo.supabase.co';
+  const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kcmNraXJuamF2ZnB0bGZ5Z2JvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1MzY3MzQsImV4cCI6MjA5NTExMjczNH0.rjoAQhEaTw6Sp-nGrQmYYvLdVKD7ewrKwG1PmMbyYgo';
+  const sb = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+
+  // code from ?m=CODE or the last path segment (/m/CODE)
+  const code = (new URLSearchParams(location.search).get('m')
+    || location.pathname.split('/').filter(Boolean).pop() || '').toUpperCase();
+
+  const $ = id => document.getElementById(id);
+  const esc = s => String(s==null?'':s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+  function fmtWhen(iso, mins){
+    try{
+      const d = new Date(iso);
+      const day = d.toLocaleDateString('en-GB',{weekday:'short',day:'numeric',month:'short'});
+      const t = d.toLocaleTimeString('en-GB',{hour:'2-digit',minute:'2-digit'});
+      return `${day} · ${t}` + (mins? ` · ${mins} min` : '');
+    }catch(e){ return ''; }
+  }
+  function genderLabel(g){ return ({mens:"Men's",womens:"Women's",mixed:'Mixed'})[g] || 'Open level'; }
+
+  let current = null;
+  function render(m){
+    current = m;
+    $('loading').classList.add('hidden');
+    $('match').classList.remove('hidden');
+    $('venue').textContent = '🎾 ' + m.venue_name;
+    $('when').textContent = fmtWhen(m.start_at, m.duration_min);
+    $('host').textContent = 'Hosted by ' + m.host_name;
+    $('cap').textContent = m.capacity;
+    $('pcount').textContent = m.player_count;
+    $('left').textContent = m.spots_left;
+    $('barfill').style.width = (m.player_count / m.capacity * 100) + '%';
+
+    // players
+    const spots = m.capacity - m.players.length;
+    let html = m.players.map(p => {
+      const initial = (p.name||'?').trim().charAt(0).toUpperCase();
+      const av = p.avatar_url ? `<div class="av"><img src="${esc(p.avatar_url)}" alt=""></div>` : `<div class="av">${esc(initial)}</div>`;
+      const tag = p.is_host ? '<span class="tag">HOST</span>' : (p.is_guest ? '<span class="tag guest">GUEST</span>' : '');
+      return `<div class="pl">${av}<span>${esc(p.name)}</span>${tag}</div>`;
+    }).join('');
+    for(let i=0;i<spots;i++) html += `<div class="pl empty"><div class="av">+</div> Open spot</div>`;
+    $('players').innerHTML = html;
+
+    // chips
+    let chips = [genderLabel(m.match_gender), 'No payment'];
+    if(m.min_level!=null || m.max_level!=null){
+      const lo = m.min_level!=null ? Number(m.min_level).toFixed(1) : '';
+      const hi = m.max_level!=null ? Number(m.max_level).toFixed(1) : '';
+      chips.unshift(lo && hi ? `${lo}–${hi}` : (lo? `${lo}+` : `up to ${hi}`));
+    }
+    $('chips').innerHTML = chips.map(c=>`<span class="chip">${esc(c)}</span>`).join('');
+
+    if(m.notes){ $('notes').textContent = m.notes; $('notes').classList.remove('hidden'); }
+    else $('notes').classList.add('hidden');
+
+    // state
+    $('joinArea').classList.add('hidden');
+    $('joinedMsg').classList.add('hidden');
+    $('fullMsg').classList.add('hidden');
+    $('cancelledMsg').classList.add('hidden');
+    if(m.status === 'cancelled'){ $('cancelledMsg').classList.remove('hidden'); }
+    else if(m.spots_left <= 0){ $('fullMsg').classList.remove('hidden'); }
+    else { $('joinArea').classList.remove('hidden'); }
+  }
+
+  async function load(){
+    if(!code){ showNotFound(); return; }
+    const { data, error } = await sb.rpc('get_open_match_public', { p_share_code: code });
+    if(error || !data){ showNotFound(); return; }
+    render(data);
+  }
+  function showNotFound(){ $('loading').classList.add('hidden'); $('notfound').classList.remove('hidden'); }
+
+  async function joinGuest(){
+    const name = $('guestName').value.trim();
+    $('err').textContent = '';
+    if(!name){ $('err').textContent = 'Please enter your name.'; return; }
+    const btn = $('joinBtn'); btn.disabled = true; btn.textContent = 'Joining…';
+    const { data, error } = await sb.rpc('join_open_match', { p_share_code: code, p_guest_name: name });
+    btn.disabled = false; btn.textContent = 'Join the match';
+    if(error){ $('err').textContent = error.message || 'Could not join — please try again.'; return; }
+    render(data);
+    // if we still have the join area (wasn't filled by us somehow) show the joined banner anyway
+    $('joinArea').classList.add('hidden');
+    $('joinedMsg').classList.remove('hidden');
+  }
+
+  function openApp(){
+    // Try to open the Padeja app; fall back to the store after a moment.
+    window.location.href = 'padejafeed://join-match?code=' + encodeURIComponent(code);
+    setTimeout(() => { window.location.href = 'https://app.padeja.com'; }, 1200);
+  }
+
+  load();
+</script>
+</body>
+</html>
