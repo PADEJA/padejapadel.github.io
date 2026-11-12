@@ -159,6 +159,8 @@
       const hi = m.max_level!=null ? Number(m.max_level).toFixed(1) : '';
       chips.unshift(lo && hi ? `${lo}–${hi}` : (lo? `${lo}+` : `up to ${hi}`));
     }
+    if(m.court_type){ chips.unshift(m.court_type === 'singles' ? 'Singles' : 'Doubles'); }
+    if(m.court_name){ chips.unshift(m.court_name); }
     $('chips').innerHTML = chips.map(c=>`<span class="chip">${esc(c)}</span>`).join('');
 
     if(m.notes){ $('notes').textContent = m.notes; $('notes').classList.remove('hidden'); }
