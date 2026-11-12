@@ -46,6 +46,12 @@
   .btn{display:block;width:100%;text-align:center;border:none;border-radius:13px;padding:15px;font-size:15px;font-weight:800;cursor:pointer;margin-top:12px}
   .btn.primary{background:var(--brand);color:#06131f}
   .btn.app{background:transparent;color:var(--brand);border:1px solid var(--line);font-weight:700;font-size:13px}
+  .btn.ghost{background:transparent;color:var(--sec);border:1px solid var(--line);font-weight:700;font-size:13px}
+  .stores{display:flex;gap:10px;margin-top:10px}
+  .store{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;text-decoration:none;background:var(--bg2);border:1px solid var(--line);border-radius:12px;padding:12px;color:var(--white);font-size:13px;font-weight:700}
+  .store svg{width:18px;height:18px;flex:none}
+  .ordiv{display:flex;align-items:center;gap:10px;color:var(--sec);font-size:11px;font-weight:700;letter-spacing:1px;text-transform:uppercase;margin:16px 0 4px}
+  .ordiv::before,.ordiv::after{content:"";flex:1;height:1px;background:var(--line)}
   .msg{text-align:center;font-weight:800;font-size:16px;padding:16px;border-radius:13px;margin-top:4px}
   .msg.ok{color:var(--win);background:rgba(61,227,158,.08);border:1px solid rgba(61,227,158,.4)}
   .msg.full{color:var(--win);background:rgba(61,227,158,.08);border:1px solid rgba(61,227,158,.4)}
@@ -82,17 +88,36 @@
         <div class="bar"><span id="barfill"></span></div>
         <div class="count" style="color:var(--win)"><span id="left">0</span> <small>left</small></div>
       </div>
+      <button class="btn primary" id="topJoin" onclick="startJoin()">Join the match</button>
+
+      <div class="join hidden" id="joinArea">
+        <div id="joinChoose">
+          <button class="btn primary" id="appJoinBtn" onclick="openApp()">Join in the Padeja app</button>
+          <button class="btn ghost" id="noAccountBtn" onclick="showGuest()">I don't have a Padeja account</button>
+        </div>
+        <div id="joinGuestArea" class="hidden">
+          <div class="lbl">Get the Padeja app</div>
+          <div class="stores">
+            <a class="store" href="https://apps.apple.com/app/padeja/id6780805905" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M16.3 1.3c.1 1-.3 2-.9 2.8-.7.8-1.7 1.4-2.7 1.3-.1-1 .4-2 1-2.7.6-.8 1.7-1.3 2.6-1.4zM19 17.3c-.5 1.1-.7 1.6-1.3 2.6-.9 1.4-2.1 3.1-3.6 3.1-1.3 0-1.7-.9-3.5-.8-1.8 0-2.2.8-3.5.8-1.5 0-2.7-1.6-3.5-2.9C1.1 16.4.8 12 2.3 9.7c1-1.6 2.6-2.5 4.1-2.5 1.5 0 2.5 1 3.7 1 1.2 0 1.9-1 3.7-1 1.3 0 2.7.7 3.7 2-3.2 1.8-2.7 6.3.8 7.6z"/></svg>
+              App Store
+            </a>
+            <a class="store" href="https://play.google.com/store/apps/details?id=com.jackwoodford.padejafeedapp" target="_blank" rel="noopener">
+              <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3.6 2.3c-.3.2-.5.6-.5 1.1v17.2c0 .5.2.9.5 1.1l9.3-9.7L3.6 2.3zm11 8.4l2.4-2.5-9-5.1c-.4-.2-.8-.2-1.1 0l7.7 7.6zm0 2.6l-7.7 7.6c.3.2.7.2 1.1 0l9-5.1-2.4-2.5zm1.3-1.3l3-1.7c.6-.4.6-1.2 0-1.6l-3-1.7-2.6 2.5 2.6 2.5z"/></svg>
+              Google Play
+            </a>
+          </div>
+          <div class="ordiv">or join as a guest</div>
+          <input type="text" id="guestName" placeholder="Your name" autocomplete="name" maxlength="40">
+          <button class="btn primary" id="joinBtn" onclick="joinGuest()">Join the match</button>
+          <button class="btn ghost" onclick="hideGuest()">Back</button>
+          <div class="err" id="err"></div>
+        </div>
+      </div>
+
       <div class="players" id="players"></div>
       <div class="chips" id="chips"></div>
       <div class="notes hidden" id="notes"></div>
-
-      <div class="join" id="joinArea">
-        <div class="lbl">Join this match</div>
-        <input type="text" id="guestName" placeholder="Your name" autocomplete="name" maxlength="40">
-        <button class="btn primary" id="joinBtn" onclick="joinGuest()">Join the match</button>
-        <button class="btn app" id="appBtn" onclick="openApp()">On Padeja? Open in the app</button>
-        <div class="err" id="err"></div>
-      </div>
 
       <div class="msg ok hidden" id="joinedMsg">🎾 You're in — see you on court!</div>
       <div class="msg full hidden" id="fullMsg">This match is full 🎉</div>
@@ -167,13 +192,32 @@
     else $('notes').classList.add('hidden');
 
     // state
+    $('topJoin').classList.add('hidden');
     $('joinArea').classList.add('hidden');
     $('joinedMsg').classList.add('hidden');
     $('fullMsg').classList.add('hidden');
     $('cancelledMsg').classList.add('hidden');
     if(m.status === 'cancelled'){ $('cancelledMsg').classList.remove('hidden'); }
     else if(m.spots_left <= 0){ $('fullMsg').classList.remove('hidden'); }
-    else { $('joinArea').classList.remove('hidden'); }
+    else { $('topJoin').classList.remove('hidden'); }
+  }
+
+  // Join flow: top button → chooser (app vs no-account) → guest/download
+  function startJoin(){
+    $('topJoin').classList.add('hidden');
+    $('joinArea').classList.remove('hidden');
+    $('joinChoose').classList.remove('hidden');
+    $('joinGuestArea').classList.add('hidden');
+    $('joinArea').scrollIntoView({behavior:'smooth', block:'nearest'});
+  }
+  function showGuest(){
+    $('joinChoose').classList.add('hidden');
+    $('joinGuestArea').classList.remove('hidden');
+    $('guestName').focus();
+  }
+  function hideGuest(){
+    $('joinGuestArea').classList.add('hidden');
+    $('joinChoose').classList.remove('hidden');
   }
 
   async function load(){
