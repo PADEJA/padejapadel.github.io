@@ -368,12 +368,25 @@
         +'<div class="muted sm">'+money(p.price_pence)+' · '+esc(p.category||'—')+'</div>'
         +'<div class="sm" style="margin-top:4px">'+sizes+'</div>'
         +'<div class="muted sm">Total stock: '+stock+'</div></div></div>'
-        +'<div class="row"><button class="btn sm sec" data-edit="'+p.id+'">Edit</button>'
+        +'<div class="row">'
+        +((STORE&&STORE.web_shop_url)?'<button class="btn sm sec" data-share="'+p.id+'">🔗 Share</button>':'')
+        +'<button class="btn sm sec" data-edit="'+p.id+'">Edit</button>'
         +'<button class="btn sm warn" data-del="'+p.id+'">Delete</button></div>'
         +'</div></div>';
     }).join("");
     Array.prototype.forEach.call(document.querySelectorAll("[data-edit]"),function(b){b.onclick=function(){openEditor(b.getAttribute("data-edit"))}});
     Array.prototype.forEach.call(document.querySelectorAll("[data-del]"),function(b){b.onclick=function(){delProduct(b.getAttribute("data-del"))}});
+    Array.prototype.forEach.call(document.querySelectorAll("[data-share]"),function(b){b.onclick=function(){shareProduct(b.getAttribute("data-share"), b)}});
+  }
+
+  // Copy a public share link for a product (club web shops only).
+  function shareProduct(id, btn){
+    if(!STORE||!STORE.web_shop_url) return;
+    var base=STORE.web_shop_url;
+    var link=base+(base.indexOf("?")>=0?"&":"?")+"product="+encodeURIComponent(id);
+    function done(){ if(btn){ var o=btn.textContent; btn.textContent="\u2713 Copied"; setTimeout(function(){ btn.textContent=o; },1800); } }
+    if(navigator.clipboard&&navigator.clipboard.writeText){ navigator.clipboard.writeText(link).then(done,function(){ window.prompt("Copy this link",link); }); }
+    else { window.prompt("Copy this link",link); }
   }
 
   $("newProduct").onclick=function(){openEditor(null)};
