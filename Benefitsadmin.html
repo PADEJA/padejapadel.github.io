@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Brentwood Benefits — Admin</title>
+<style>
+  :root {
+    --ink:#0f172a; --muted:#64748b; --line:#e2e8f0; --brand:#16a34a; --brand-dark:#15803d;
+    --card:#ffffff; --soft:#f8fafc; --bad:#b91c1c; --bad-bg:#fef2f2; --amber:#92400e; --amber-bg:#fffbeb;
+  }
+  * { box-sizing:border-box; }
+  html,body { margin:0; padding:0; }
+  body {
+    font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial,sans-serif;
+    background:linear-gradient(160deg,#0f172a 0%,#134e3a 100%); color:var(--ink);
+    min-height:100vh; padding:28px 16px 60px;
+  }
+  .wrap { width:100%; max-width:760px; margin:0 auto; }
+  h1 { color:#fff; font-size:20px; margin:0 0 2px; text-align:center; }
+  .sub { color:#cbd5e1; font-size:13px; text-align:center; margin:0 0 22px; }
+  .card { background:var(--card); border-radius:16px; padding:20px; box-shadow:0 10px 30px rgba(0,0,0,.22); margin-bottom:18px; }
+  .card h2 { font-size:16px; margin:0 0 4px; }
+  .card .hint { color:var(--muted); font-size:13px; margin:0 0 14px; line-height:1.5; }
+  label { display:block; font-size:12px; font-weight:600; margin:0 0 5px; }
+  input,textarea,select { width:100%; padding:10px 12px; font-size:14px; border:1px solid var(--line); border-radius:9px; font-family:inherit; }
+  textarea { resize:vertical; min-height:90px; }
+  input:focus,textarea:focus { outline:none; border-color:var(--brand); box-shadow:0 0 0 3px rgba(22,163,74,.14); }
+  .row { display:flex; gap:10px; flex-wrap:wrap; }
+  .row > * { flex:1; min-width:120px; }
+  .field { margin-bottom:12px; }
+  button { padding:10px 16px; font-size:14px; font-weight:600; color:#fff; background:var(--brand); border:0; border-radius:9px; cursor:pointer; }
+  button:hover:not(:disabled) { background:var(--brand-dark); }
+  button:disabled { opacity:.55; cursor:default; }
+  button.ghost { background:#fff; color:var(--ink); border:1px solid var(--line); }
+  button.ghost:hover:not(:disabled) { background:var(--soft); }
+  button.danger { background:#fff; color:var(--bad); border:1px solid #fecaca; }
+  button.danger:hover:not(:disabled) { background:var(--bad-bg); }
+  button.small { padding:7px 12px; font-size:13px; }
+  .partner { border:1px solid var(--line); border-radius:12px; padding:16px; margin-bottom:14px; background:var(--soft); }
+  .partner .top { display:flex; justify-content:space-between; align-items:flex-start; gap:10px; flex-wrap:wrap; }
+  .badges { display:flex; gap:8px; flex-wrap:wrap; margin:10px 0; }
+  .badge { font-size:12px; font-weight:600; padding:4px 10px; border-radius:999px; background:#ecfdf5; color:#065f46; }
+  .badge.zero { background:var(--amber-bg); color:var(--amber); }
+  .badge.off { background:#f1f5f9; color:#475569; }
+  .muted { color:var(--muted); font-size:12.5px; }
+  .toolbar { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+  .msg { padding:10px 12px; border-radius:9px; font-size:13.5px; margin-top:12px; display:none; }
+  .msg.show { display:block; }
+  .msg.ok { background:#ecfdf5; color:#065f46; }
+  .msg.err { background:var(--bad-bg); color:var(--bad); }
+  .switch { display:inline-flex; align-items:center; gap:8px; font-size:13px; font-weight:600; cursor:pointer; }
+  .count-big { font-size:30px; font-weight:800; }
+  .hidden { display:none !important; }
+  .spin { display:inline-block; width:14px; height:14px; border:2px solid rgba(255,255,255,.5); border-top-color:#fff; border-radius:50%; animation:s .7s linear infinite; vertical-align:-2px; margin-right:7px; }
+  @keyframes s { to { transform:rotate(360deg); } }
+  details summary { cursor:pointer; font-size:13px; font-weight:600; color:var(--brand-dark); }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Brentwood Member Benefits</h1>
+  <p class="sub">Admin</p>
+
+  <!-- LOGIN -->
+  <div class="card" id="login">
+    <h2>Sign in</h2>
+    <p class="hint">Enter the admin password to manage partnerships, codes and the active-member list.</p>
+    <div class="field"><input id="pw" type="password" placeholder="Admin password" autocomplete="current-password" /></div>
+    <button id="loginBtn">Sign in</button>
+    <div class="msg err" id="loginMsg"></div>
+  </div>
+
+  <!-- APP -->
+  <div id="app" class="hidden">
+    <!-- Active members -->
+    <div class="card">
+      <h2>Active members</h2>
+      <p class="hint">Only people on this list can claim a code. Paste or upload your active-member export, then replace the list. We pull out the email addresses automatically — a CSV is fine.</p>
+      <p><span class="count-big" id="activeCount">—</span> <span class="muted">active members currently on the list</span></p>
+      <div class="field">
+        <label>Paste emails or a CSV (or choose a file below)</label>
+        <textarea id="activeText" placeholder="jane@example.com&#10;mark@example.com&#10;…or paste your whole CSV export"></textarea>
+      </div>
+      <div class="row" style="align-items:center">
+        <input id="activeFile" type="file" accept=".csv,.txt" style="border:none;padding:0" />
+        <span class="muted" id="activeFound"></span>
+      </div>
+      <div class="toolbar">
+        <button id="replaceActiveBtn">Replace active list</button>
+      </div>
+      <div class="msg" id="activeMsg"></div>
+    </div>
+
+    <!-- Partnerships -->
+    <div class="card">
+      <h2>Partnerships</h2>
+      <p class="hint">Each partner either has a <strong>pool</strong> of unique codes (one per member) or a single <strong>shared code</strong> everyone reuses. Set a shared code to use that mode; leave it empty and add a pool of codes instead.</p>
+      <div id="partners"></div>
+      <div class="msg" id="partnersMsg"></div>
+    </div>
+
+    <!-- Add partner -->
+    <div class="card">
+      <h2>Add a partnership</h2>
+      <div class="field"><label>Name</label><input id="newName" placeholder="e.g. Bacons Osteopath" /></div>
+      <div class="field"><label>Description (shown to members)</label><input id="newDesc" placeholder="e.g. 10% off treatments for members" /></div>
+      <div class="field"><label>Shared code (optional — leave empty to use a pool of codes)</label><input id="newShared" placeholder="e.g. BACONS10" /></div>
+      <button id="addPartnerBtn">Add partnership</button>
+      <div class="msg" id="addMsg"></div>
+    </div>
+
+    <p style="text-align:center"><button class="ghost small" id="logoutBtn">Sign out</button></p>
+  </div>
+</div>
+
+<script>
+  const SUPABASE_URL = "https://odrckirnjavfptlfygbo.supabase.co";
+  const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kcmNraXJuamF2ZnB0bGZ5Z2JvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1MzY3MzQsImV4cCI6MjA5NTExMjczNH0.rjoAQhEaTw6Sp-nGrQmYYvLdVKD7ewrKwG1PmMbyYgo";
+  const API = SUPABASE_URL + "/functions/v1/benefit-admin";
+
+  let KEY = "";
+  try { KEY = localStorage.getItem("benefitAdminKey") || ""; } catch (e) {}
+
+  const $ = (id) => document.getElementById(id);
+  const esc = (s) => String(s==null?"":s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  function flash(el, kind, text) { el.className = "msg show " + kind; el.textContent = text; }
+  function clearMsg(el) { el.className = "msg"; }
+
+  async function call(action, extra) {
+    const res = await fetch(API, {
+      method: "POST",
+      headers: { apikey: ANON_KEY, Authorization: "Bearer " + ANON_KEY, "Content-Type": "application/json" },
+      body: JSON.stringify(Object.assign({ key: KEY, action }, extra || {}))
+    });
+    const data = await res.json().catch(() => ({}));
+    if (res.status === 401) { logout(); throw new Error("Wrong password"); }
+    if (!res.ok) throw new Error(data.error || ("Error " + res.status));
+    return data;
+  }
+
+  // ---- auth ----
+  async function doLogin() {
+    const pw = $("pw").value.trim();
+    if (!pw) return;
+    KEY = pw;
+    $("loginBtn").disabled = true;
+    clearMsg($("loginMsg"));
+    try {
+      await load();
+      try { localStorage.setItem("benefitAdminKey", KEY); } catch (e) {}
+      $("login").classList.add("hidden");
+      $("app").classList.remove("hidden");
+    } catch (e) {
+      flash($("loginMsg"), "err", "That password didn't work. Please try again.");
+      KEY = "";
+    } finally { $("loginBtn").disabled = false; }
+  }
+  function logout() {
+    KEY = "";
+    try { localStorage.removeItem("benefitAdminKey"); } catch (e) {}
+    $("app").classList.add("hidden");
+    $("login").classList.remove("hidden");
+    $("pw").value = "";
+  }
+
+  // ---- load + render ----
+  async function load() {
+    const data = await call("list");
+    $("activeCount").textContent = data.active_members;
+    renderPartners(data.partners || []);
+    return data;
+  }
+
+  function renderPartners(partners) {
+    const host = $("partners");
+    if (!partners.length) { host.innerHTML = '<p class="muted">No partnerships yet. Add one below.</p>'; return; }
+    host.innerHTML = partners.map(p => {
+      const shared = p.shared_code ? esc(p.shared_code) : "";
+      const modeBadge = p.shared_code
+        ? '<span class="badge">Shared code</span>'
+        : (p.codes_left > 0 ? '<span class="badge">'+p.codes_left+' codes left</span>' : '<span class="badge zero">No codes left</span>');
+      const activeBadge = p.active ? '' : '<span class="badge off">Hidden</span>';
+      return `
+      <div class="partner" data-id="${p.id}">
+        <div class="top">
+          <div style="flex:1;min-width:200px">
+            <div class="field"><label>Name</label><input class="p-name" value="${esc(p.name)}" /></div>
+            <div class="field"><label>Description</label><input class="p-desc" value="${esc(p.description)}" /></div>
+          </div>
+        </div>
+        <div class="badges">${modeBadge}${activeBadge}
+          ${p.shared_code ? '' : '<span class="badge off">'+p.codes_claimed+' claimed</span>'}
+        </div>
+        <div class="row">
+          <div class="field" style="flex:2"><label>Shared code (empty = use a code pool)</label><input class="p-shared" value="${shared}" placeholder="none" /></div>
+          <div class="field" style="flex:1"><label>Visible on page?</label>
+            <select class="p-active"><option value="1"${p.active?" selected":""}>Yes</option><option value="0"${!p.active?" selected":""}>No</option></select>
+          </div>
+        </div>
+        <details>
+          <summary>Add codes to the pool</summary>
+          <div class="field" style="margin-top:10px"><textarea class="p-codes" placeholder="One code per line&#10;SAVE10-001&#10;SAVE10-002"></textarea></div>
+          <button class="small addCodes">Add these codes</button>
+          <span class="muted p-codes-msg"></span>
+        </details>
+        <div class="toolbar">
+          <button class="small saveP">Save changes</button>
+          <button class="small danger delP">Delete</button>
+          <span class="muted saveMsg"></span>
+        </div>
+      </div>`;
+    }).join("");
+
+    host.querySelectorAll(".partner").forEach(el => {
+      const id = el.getAttribute("data-id");
+      el.querySelector(".saveP").addEventListener("click", async () => {
+        const btn = el.querySelector(".saveP"); btn.disabled = true;
+        const msg = el.querySelector(".saveMsg"); msg.textContent = "Saving…";
+        try {
+          await call("update_partner", {
+            id,
+            name: el.querySelector(".p-name").value,
+            description: el.querySelector(".p-desc").value,
+            shared_code: el.querySelector(".p-shared").value,
+            active: el.querySelector(".p-active").value === "1"
+          });
+          await load();
+        } catch (e) { msg.textContent = e.message; btn.disabled = false; }
+      });
+      el.querySelector(".delP").addEventListener("click", async () => {
+        if (!confirm("Delete this partnership and all its codes? This cannot be undone.")) return;
+        try { await call("delete_partner", { id }); await load(); } catch (e) { el.querySelector(".saveMsg").textContent = e.message; }
+      });
+      el.querySelector(".addCodes").addEventListener("click", async () => {
+        const ta = el.querySelector(".p-codes");
+        const codes = ta.value.split(/\r?\n/).map(s => s.trim()).filter(Boolean);
+        const m = el.querySelector(".p-codes-msg");
+        if (!codes.length) { m.textContent = "Paste at least one code."; return; }
+        const btn = el.querySelector(".addCodes"); btn.disabled = true; m.textContent = "Adding…";
+        try {
+          const r = await call("add_codes", { partner_id: id, codes });
+          m.textContent = `Added ${r.added}${r.skipped ? ", skipped " + r.skipped + " duplicate(s)" : ""}.`;
+          ta.value = "";
+          await load();
+        } catch (e) { m.textContent = e.message; } finally { btn.disabled = false; }
+      });
+    });
+  }
+
+  // ---- active members ----
+  function extractEmails(text) {
+    const m = String(text).match(/[\w.+-]+@[\w-]+\.[\w.-]+/g) || [];
+    return [...new Set(m.map(e => e.trim().toLowerCase()))];
+  }
+  function updateActiveFound() {
+    const n = extractEmails($("activeText").value).length;
+    $("activeFound").textContent = n ? n + " email(s) found" : "";
+  }
+  $("activeText").addEventListener("input", updateActiveFound);
+  $("activeFile").addEventListener("change", (e) => {
+    const f = e.target.files[0]; if (!f) return;
+    const r = new FileReader();
+    r.onload = () => { $("activeText").value = r.result; updateActiveFound(); };
+    r.readAsText(f);
+  });
+  $("replaceActiveBtn").addEventListener("click", async () => {
+    const emails = extractEmails($("activeText").value);
+    if (!emails.length) { flash($("activeMsg"), "err", "No email addresses found to upload."); return; }
+    if (!confirm(`Replace the active list with ${emails.length} member(s)? The current list will be cleared first.`)) return;
+    const btn = $("replaceActiveBtn"); btn.disabled = true; btn.innerHTML = "<span class='spin'></span>Uploading…";
+    clearMsg($("activeMsg"));
+    try {
+      const r = await call("replace_active_members", { emails });
+      flash($("activeMsg"), "ok", `Done — ${r.count} active member(s) are now on the list.`);
+      $("activeText").value = ""; updateActiveFound();
+      await load();
+    } catch (e) { flash($("activeMsg"), "err", e.message); }
+    finally { btn.disabled = false; btn.textContent = "Replace active list"; }
+  });
+
+  // ---- add partner ----
+  $("addPartnerBtn").addEventListener("click", async () => {
+    const name = $("newName").value.trim();
+    if (!name) { flash($("addMsg"), "err", "Please enter a name."); return; }
+    const btn = $("addPartnerBtn"); btn.disabled = true; clearMsg($("addMsg"));
+    try {
+      await call("add_partner", { name, description: $("newDesc").value, shared_code: $("newShared").value });
+      $("newName").value = ""; $("newDesc").value = ""; $("newShared").value = "";
+      flash($("addMsg"), "ok", "Partnership added.");
+      await load();
+    } catch (e) { flash($("addMsg"), "err", e.message); }
+    finally { btn.disabled = false; }
+  });
+
+  $("loginBtn").addEventListener("click", doLogin);
+  $("pw").addEventListener("keydown", (e) => { if (e.key === "Enter") doLogin(); });
+  $("logoutBtn").addEventListener("click", logout);
+
+  // Auto sign-in if we already have a saved password.
+  (async () => {
+    if (!KEY) return;
+    try { await load(); $("login").classList.add("hidden"); $("app").classList.remove("hidden"); }
+    catch (e) { logout(); }
+  })();
+</script>
+</body>
+</html>
