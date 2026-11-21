@@ -104,11 +104,6 @@
         </div>
 
         <div class="field">
-          <label for="name">Your name</label>
-          <input id="name" type="text" autocomplete="name" placeholder="Jane Smith" required />
-        </div>
-
-        <div class="field">
           <label for="email">Email address</label>
           <input id="email" type="email" autocomplete="email" placeholder="you@example.com" required />
           <div class="partner-desc">Use the email address you're registered with at the club.</div>
@@ -170,10 +165,9 @@
     e.preventDefault();
     hideMsg();
     const partner_id = sel.value;
-    const name = document.getElementById("name").value.trim();
     const email = document.getElementById("email").value.trim();
     if (!partner_id) { showMsg("bad", "Pick a partner", "Please choose a partnership from the list."); return; }
-    if (!name || !email) { showMsg("bad", "Missing details", "Please enter your name and email."); return; }
+    if (!email) { showMsg("bad", "Missing email", "Please enter your email address."); return; }
 
     btn.disabled = true;
     const label = btn.textContent;
@@ -182,7 +176,7 @@
     try {
       const res = await fetch(SUPABASE_URL + "/functions/v1/benefit-verify", {
         method: "POST", headers,
-        body: JSON.stringify({ partner_id, name, email })
+        body: JSON.stringify({ partner_id, email })
       });
       const data = await res.json().catch(() => ({}));
       const status = data.status || "error";
