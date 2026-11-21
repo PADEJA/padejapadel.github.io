@@ -1,0 +1,221 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Brentwood Padel Club — Member Benefits</title>
+<style>
+  :root {
+    --bg: #0f172a;
+    --card: #ffffff;
+    --ink: #0f172a;
+    --muted: #64748b;
+    --line: #e2e8f0;
+    --brand: #16a34a;
+    --brand-dark: #15803d;
+    --good-bg: #ecfdf5;
+    --good-ink: #065f46;
+    --good-line: #a7f3d0;
+    --warn-bg: #fffbeb;
+    --warn-ink: #92400e;
+    --warn-line: #fde68a;
+    --bad-bg: #fef2f2;
+    --bad-ink: #991b1b;
+    --bad-line: #fecaca;
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    background: linear-gradient(160deg, #0f172a 0%, #134e3a 100%);
+    color: var(--ink);
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 32px 16px 48px;
+  }
+  .wrap { width: 100%; max-width: 460px; }
+  .brand-row {
+    text-align: center;
+    color: #fff;
+    margin-bottom: 20px;
+  }
+  .brand-row .dot {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 54px; height: 54px; border-radius: 16px;
+    background: var(--brand); font-size: 28px; margin-bottom: 10px;
+  }
+  .brand-row h1 { font-size: 20px; margin: 0 0 4px; font-weight: 700; }
+  .brand-row p { margin: 0; font-size: 14px; color: #cbd5e1; }
+  .card {
+    background: var(--card);
+    border-radius: 18px;
+    padding: 24px 22px;
+    box-shadow: 0 10px 30px rgba(0,0,0,.25);
+  }
+  .lead { margin: 0 0 20px; font-size: 15px; color: var(--muted); line-height: 1.5; }
+  label { display: block; font-size: 13px; font-weight: 600; margin: 0 0 6px; color: var(--ink); }
+  .field { margin-bottom: 16px; }
+  select, input {
+    width: 100%; padding: 12px 14px; font-size: 15px;
+    border: 1px solid var(--line); border-radius: 11px;
+    background: #fff; color: var(--ink); -webkit-appearance: none; appearance: none;
+  }
+  select { background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='16' height='16' viewBox='0 0 24 24' fill='none' stroke='%2364748b' stroke-width='2.5'><path d='M6 9l6 6 6-6'/></svg>"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 40px; }
+  select:focus, input:focus { outline: none; border-color: var(--brand); box-shadow: 0 0 0 3px rgba(22,163,74,.15); }
+  .partner-desc { font-size: 13px; color: var(--muted); margin: 8px 2px 0; min-height: 18px; }
+  button {
+    width: 100%; padding: 14px; font-size: 16px; font-weight: 700;
+    color: #fff; background: var(--brand); border: 0; border-radius: 12px;
+    cursor: pointer; margin-top: 6px; transition: background .15s;
+  }
+  button:hover:not(:disabled) { background: var(--brand-dark); }
+  button:disabled { opacity: .6; cursor: default; }
+  .msg { margin-top: 18px; padding: 14px 16px; border-radius: 12px; font-size: 14.5px; line-height: 1.5; border: 1px solid transparent; display: none; }
+  .msg.show { display: block; }
+  .msg.good { background: var(--good-bg); color: var(--good-ink); border-color: var(--good-line); }
+  .msg.warn { background: var(--warn-bg); color: var(--warn-ink); border-color: var(--warn-line); }
+  .msg.bad  { background: var(--bad-bg);  color: var(--bad-ink);  border-color: var(--bad-line); }
+  .msg strong { display: block; font-size: 15.5px; margin-bottom: 3px; }
+  .foot { text-align: center; color: #94a3b8; font-size: 12px; margin-top: 18px; }
+  .spin { display: inline-block; width: 15px; height: 15px; border: 2px solid rgba(255,255,255,.5); border-top-color: #fff; border-radius: 50%; animation: s .7s linear infinite; vertical-align: -2px; margin-right: 8px; }
+  @keyframes s { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="brand-row">
+      <div class="dot">🎾</div>
+      <h1>Brentwood Padel Club</h1>
+      <p>Member Benefits</p>
+    </div>
+
+    <div class="card">
+      <p class="lead">Choose a partner below and enter your details. If you're a Brentwood member, we'll email your discount code straight to you.</p>
+
+      <form id="form">
+        <div class="field">
+          <label for="partner">Partnership</label>
+          <select id="partner" required>
+            <option value="">Loading partners…</option>
+          </select>
+          <div class="partner-desc" id="partnerDesc"></div>
+        </div>
+
+        <div class="field">
+          <label for="name">Your name</label>
+          <input id="name" type="text" autocomplete="name" placeholder="Jane Smith" required />
+        </div>
+
+        <div class="field">
+          <label for="email">Email address</label>
+          <input id="email" type="email" autocomplete="email" placeholder="you@example.com" required />
+          <div class="partner-desc">Use the email address you're registered with at the club.</div>
+        </div>
+
+        <button type="submit" id="submit">Get my code</button>
+      </form>
+
+      <div class="msg" id="msg"></div>
+    </div>
+
+    <div class="foot">Powered by Padeja</div>
+  </div>
+
+<script>
+  // ---- Config (both values are public / safe to ship) --------------------
+  const SUPABASE_URL = "https://odrckirnjavfptlfygbo.supabase.co";
+  const ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kcmNraXJuamF2ZnB0bGZ5Z2JvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1MzY3MzQsImV4cCI6MjA5NTExMjczNH0.rjoAQhEaTw6Sp-nGrQmYYvLdVKD7ewrKwG1PmMbyYgo";
+  // ------------------------------------------------------------------------
+
+  const headers = { apikey: ANON_KEY, Authorization: "Bearer " + ANON_KEY, "Content-Type": "application/json" };
+  const sel = document.getElementById("partner");
+  const desc = document.getElementById("partnerDesc");
+  const form = document.getElementById("form");
+  const btn = document.getElementById("submit");
+  const msg = document.getElementById("msg");
+  let partners = [];
+
+  function showMsg(kind, title, body) {
+    msg.className = "msg show " + kind;
+    msg.innerHTML = "<strong>" + title + "</strong>" + body;
+  }
+  function hideMsg() { msg.className = "msg"; }
+
+  // Load partnerships into the dropdown.
+  (async function loadPartners() {
+    try {
+      const res = await fetch(SUPABASE_URL + "/rest/v1/rpc/benefit_list_partners", {
+        method: "POST", headers, body: "{}"
+      });
+      partners = await res.json();
+      if (!Array.isArray(partners) || partners.length === 0) {
+        sel.innerHTML = "<option value=''>No partners available yet</option>";
+        return;
+      }
+      sel.innerHTML = "<option value=''>Select a partner…</option>" +
+        partners.map(p => "<option value='" + p.id + "'>" + escapeHtml(p.name) + "</option>").join("");
+    } catch (e) {
+      sel.innerHTML = "<option value=''>Couldn't load partners</option>";
+    }
+  })();
+
+  sel.addEventListener("change", function () {
+    const p = partners.find(x => x.id === sel.value);
+    desc.textContent = p && p.description ? p.description : "";
+  });
+
+  form.addEventListener("submit", async function (e) {
+    e.preventDefault();
+    hideMsg();
+    const partner_id = sel.value;
+    const name = document.getElementById("name").value.trim();
+    const email = document.getElementById("email").value.trim();
+    if (!partner_id) { showMsg("bad", "Pick a partner", "Please choose a partnership from the list."); return; }
+    if (!name || !email) { showMsg("bad", "Missing details", "Please enter your name and email."); return; }
+
+    btn.disabled = true;
+    const label = btn.textContent;
+    btn.innerHTML = "<span class='spin'></span>Checking membership…";
+
+    try {
+      const res = await fetch(SUPABASE_URL + "/functions/v1/benefit-verify", {
+        method: "POST", headers,
+        body: JSON.stringify({ partner_id, name, email })
+      });
+      const data = await res.json().catch(() => ({}));
+      const status = data.status || "error";
+
+      if (data.verified && data.emailed) {
+        showMsg("good", "✅ Verified — check your inbox",
+          "You're a Brentwood member! We've emailed your discount code to <b>" + escapeHtml(email) + "</b>. If it doesn't arrive in a few minutes, check your spam folder.");
+        form.reset(); desc.textContent = "";
+      } else if (data.verified && status === "no_codes") {
+        showMsg("warn", "Verified, but no codes left",
+          "You're a Brentwood member, but this partner's codes have all been claimed. Please check back soon or contact the club.");
+      } else if (data.verified && status === "email_failed") {
+        showMsg("warn", "Verified — email didn't send",
+          "You're a member and a code was reserved for you, but the email failed to send. Please try again shortly, or contact the club.");
+      } else if (status === "not_member") {
+        showMsg("bad", "We couldn't find your membership",
+          "That email isn't on the Brentwood member list. Please use the email you're registered with at the club, or contact the club if you think this is a mistake.");
+      } else if (status === "bad_request") {
+        showMsg("bad", "Please check your details", "Make sure a partner is selected and your name and email are filled in correctly.");
+      } else {
+        showMsg("bad", "Something went wrong", "We couldn't complete your request just now. Please try again in a moment.");
+      }
+    } catch (err) {
+      showMsg("bad", "Connection problem", "We couldn't reach the server. Please check your connection and try again.");
+    } finally {
+      btn.disabled = false;
+      btn.textContent = label;
+    }
+  });
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;" }[c]));
+  }
+</script>
+</body>
+</html>
