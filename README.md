@@ -51,7 +51,7 @@ published with it.
 
 | Folder | What it is | How to build |
 |---|---|---|
-| `PadejaClubhouseApp/` | Android kiosk launcher for club TVs and tablets | In that folder: `powershell -ExecutionPolicy Bypass -File manual-build\build.ps1` produces `manual-build\out\PadejaClubhouse-debug.apk` (tests: `manual-build\test.ps1`) |
+| `PadejaClubhouseApp/` | Android kiosk launcher for club TVs and tablets | In that folder: `powershell -ExecutionPolicy Bypass -File manual-build\build.ps1` produces `manual-build\out\PadejaClubhouse.apk` (tests: `manual-build\test.ps1`) |
 | `padeja-design/` | Design guide and colour tokens | `node scripts/generate.mjs` (drift check: `node scripts/check.mjs`) |
 | `Padejafeed/`, `PadelScore/` | iOS apps | Xcode on a Mac |
 | `PadejaFeed-Android/`, `PadelScoreAndroid/`, `PadelScore/PadejaCourtTablet/` | Android apps | Android Studio, or `./gradlew assembleDebug` |
