@@ -43,3 +43,15 @@ for headings on club TV pages. Club pages may change the **accent colour only**.
 The design source of truth is the `padeja-design` repo (`jbrooker1/padeja-design`, private).
 The copy of `DESIGN.md` here is refreshed from it with `node scripts/sync.mjs --write`; edit
 colours there, not here.
+
+## Related projects in this workspace
+
+Other Padeja projects sit in sub-folders next to this site. Each is its own repo, separate from the website, and is not
+published with it.
+
+| Folder | What it is | How to build |
+|---|---|---|
+| `PadejaClubhouseApp/` | Android kiosk launcher for club TVs and tablets | In that folder: `powershell -ExecutionPolicy Bypass -File manual-build\build.ps1` produces `manual-build\out\PadejaClubhouse-debug.apk` (tests: `manual-build\test.ps1`) |
+| `padeja-design/` | Design guide and colour tokens | `node scripts/generate.mjs` (drift check: `node scripts/check.mjs`) |
+| `Padejafeed/`, `PadelScore/` | iOS apps | Xcode on a Mac |
+| `PadejaFeed-Android/`, `PadelScoreAndroid/`, `PadelScore/PadejaCourtTablet/` | Android apps | Android Studio, or `./gradlew assembleDebug` |
