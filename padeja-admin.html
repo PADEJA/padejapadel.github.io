@@ -142,6 +142,7 @@
     <div class="nav">
       <button data-view="tablets" class="on">Tablets</button>
       <button data-view="updates">App updates</button>
+      <button data-view="pins">Staff PIN</button>
       <a href="clubmanager.html">Club manager &rarr;</a>
       <a href="hostmanager.html">Host manager &rarr;</a>
       <a href="clubconsole.html">Club console &rarr;</a>
@@ -193,6 +194,32 @@
         <div class="mini" id="relMsg" style="margin-top:8px"></div>
       </div>
     </section>
+
+    <!-- ---------- staff PIN ---------- -->
+    <section id="viewPins" class="hidden">
+      <div class="card">
+        <h2>Staff PIN</h2>
+        <p class="sub">Staff hold the top-left corner of a court tablet for 3 seconds and enter this PIN to reach Wi-Fi and Android settings (app 1.1.1 or later). A club's PIN beats the default for all clubs. It is scrambled in your browser before it is saved, so nobody can read it back: if it is forgotten, set a new one. Online tablets pick it up within a minute.</p>
+        <div class="two">
+          <div class="field"><label for="pinClub">For</label><select id="pinClub"></select></div>
+          <div class="field"><label>Current</label><div class="mini" id="pinState" style="padding:11px 0"></div></div>
+        </div>
+        <div class="two">
+          <div class="field"><label for="pinNew">New PIN (6 to 8 digits)</label><input id="pinNew" type="password" inputmode="numeric" maxlength="8" autocomplete="new-password"></div>
+          <div class="field"><label for="pinAgain">Type it again</label><input id="pinAgain" type="password" inputmode="numeric" maxlength="8" autocomplete="new-password"></div>
+        </div>
+        <button class="btn sm" id="pinSave">Save PIN</button>
+        <button class="btn alt sm" id="pinRemove">Remove this PIN</button>
+        <div class="err" id="pinMsg"></div>
+      </div>
+      <div class="card">
+        <h2>Clubs with tablets</h2>
+        <div class="scroll"><table>
+          <thead><tr><th>Club</th><th>Tablets</th><th>Staff PIN</th></tr></thead>
+          <tbody id="pinBody"></tbody>
+        </table></div>
+      </div>
+    </section>
   </div>
 </div>
 
@@ -231,7 +258,8 @@ var ONLINE_MS = 5 * 60 * 1000;      // tablets check in every minute; 5 quiet mi
 var DEV_COLS = 'id,serial,android_id,manufacturer,model,android_version,is_device_owner,app_version_code,app_version_name,battery_pct,charging,wifi_rssi,free_storage_mb,update_status,update_error,last_seen_at,first_seen_at,club_id,court_name,nickname,notes,target_version_name,active';
 
 var S = { token:null, refresh:null, uid:null, email:'', devices:[], clubs:[], clubName:{}, courts:[], clubSettings:{}, fleetTarget:null,
-          releases:[], statusFilter:'all', editing:null };
+          releases:[], statusFilter:'all', editing:null, pins:null };
+var PIN_ITERATIONS = 150000;   // PBKDF2-HMAC-SHA256; the tablet reads the count that was saved with the PIN
 var $ = function(id){ return document.getElementById(id); };
 function esc(v){ return String(v==null?'':v).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
 
@@ -302,8 +330,10 @@ async function loadAll(){
     api('GET', 'clubs?select=id,name&order=name&limit=2000'),
     api('GET', 'courts?select=club_id,name&active=eq.true&order=sort_order&limit=2000'),
     api('GET', 'court_club_settings?select=club_id,target_version_name,idle_enabled,idle_after_seconds&limit=2000'),
-    api('GET', 'court_fleet_settings?select=target_version_name&limit=1')
+    api('GET', 'court_fleet_settings?select=target_version_name&limit=1'),
+    rpc('court_admin_staff_pin_status').catch(function(){ return null; })   // null until sql/staff_pin.sql is applied
   ]);
+  S.pins = r[5] || null;
   S.devices = r[0] || []; S.clubs = r[1] || []; S.courts = r[2] || [];
   S.clubName = {}; S.clubs.forEach(function(c){ S.clubName[c.id] = c.name; });
   S.clubSettings = {}; (r[3]||[]).forEach(function(c){ S.clubSettings[c.club_id] = c; });
@@ -496,9 +526,79 @@ async function applyClub(){
   catch(e){ $('updMsg').className = 'err'; $('updMsg').textContent = 'Could not save: ' + e.message; }
 }
 
+// ============================ STAFF PIN ============================
+function clubPinDate(id){
+  var hit = ((S.pins && S.pins.clubs) || []).find(function(c){ return c.club_id === id; });
+  return hit ? hit.updated_at : null;
+}
+function tabletsByClub(){
+  var n = {}; S.devices.forEach(function(d){ if(d.club_id) n[d.club_id] = (n[d.club_id] || 0) + 1; }); return n;
+}
+function renderPins(){
+  var n = tabletsByClub(), sel = $('pinClub'), cur = sel.value;
+  var opt = function(c){ return '<option value="' + esc(c.id) + '">' + esc(c.name) + '</option>'; };
+  sel.innerHTML = '<option value="">Default for all clubs</option>' +
+    '<optgroup label="Clubs with tablets">' + S.clubs.filter(function(c){ return n[c.id]; }).map(opt).join('') + '</optgroup>' +
+    '<optgroup label="Other clubs">' + S.clubs.filter(function(c){ return !n[c.id]; }).map(opt).join('') + '</optgroup>';
+  sel.value = cur;
+  showPinState();
+  var fleet = S.pins && S.pins.fleet_updated_at;
+  $('pinBody').innerHTML = S.clubs.filter(function(c){ return n[c.id]; }).map(function(c){
+    var own = clubPinDate(c.id);
+    var chip = !S.pins ? '<span class="chip">Not switched on</span>'
+      : own ? '<span class="chip good">Own PIN</span> <span class="mini">set ' + esc(new Date(own).toLocaleDateString()) + '</span>'
+      : fleet ? '<span class="chip info">Default PIN</span>'
+      : '<span class="chip bad">No PIN</span> <span class="mini">opens without one</span>';
+    return '<tr><td><b>' + esc(c.name) + '</b></td><td>' + n[c.id] + '</td><td>' + chip + '</td></tr>';
+  }).join('') || '<tr><td colspan="3" class="faint">No club has tablets yet.</td></tr>';
+}
+function showPinState(){
+  var id = $('pinClub').value, at = S.pins ? (id ? clubPinDate(id) : S.pins.fleet_updated_at) : null;
+  $('pinState').textContent = !S.pins ? 'Staff PINs are not switched on in the database yet.'
+    : at ? 'A PIN was set on ' + new Date(at).toLocaleString() + '.'
+    : id ? (S.pins.fleet_updated_at ? 'No own PIN: this club uses the default.' : 'No PIN: its tablets open without one.')
+    : 'No default PIN set.';
+  $('pinSave').disabled = !S.pins;
+  $('pinRemove').disabled = !S.pins || !at;
+}
+function toHex(bytes){ return Array.prototype.map.call(bytes, function(b){ return ('0' + b.toString(16)).slice(-2); }).join(''); }
+async function hashPin(pin, saltHex, iterations){
+  var salt = new Uint8Array(saltHex.match(/../g).map(function(h){ return parseInt(h, 16); }));
+  var key = await crypto.subtle.importKey('raw', new TextEncoder().encode(pin), 'PBKDF2', false, ['deriveBits']);
+  var bits = await crypto.subtle.deriveBits({ name:'PBKDF2', hash:'SHA-256', salt:salt, iterations:iterations }, key, 256);
+  return toHex(new Uint8Array(bits));
+}
+function weakPin(p){ return /^(\d)\1+$/.test(p) || '01234567890'.indexOf(p) >= 0 || '98765432109'.indexOf(p) >= 0; }
+function pinMessage(text, good){ $('pinMsg').className = good ? 'err ok' : 'err'; $('pinMsg').textContent = text; }
+async function savePin(){
+  var id = $('pinClub').value, a = $('pinNew').value, b = $('pinAgain').value;
+  if(!/^\d{6,8}$/.test(a)) return pinMessage('Use 6 to 8 digits.');
+  if(weakPin(a)) return pinMessage('That PIN is too easy to guess. Avoid repeats and runs like 123456.');
+  if(a !== b) return pinMessage('The two PINs do not match.');
+  $('pinSave').disabled = true; pinMessage('Saving...', true);
+  try{
+    var saltBytes = new Uint8Array(16); crypto.getRandomValues(saltBytes);
+    var salt = toHex(saltBytes);
+    var hash = await hashPin(a, salt, PIN_ITERATIONS);
+    await rpc('court_admin_set_staff_pin', { p_club: id || null, p_salt: salt, p_hash: hash, p_iterations: PIN_ITERATIONS });
+    $('pinNew').value = ''; $('pinAgain').value = '';
+    await refresh(); pinMessage('Saved. Online tablets pick it up within a minute.', true);
+  }catch(e){ pinMessage('Could not save: ' + e.message); }
+  showPinState();
+}
+async function removePin(){
+  var id = $('pinClub').value;
+  var what = id ? 'the PIN for ' + (S.clubName[id] || 'this club') : 'the default PIN';
+  if(!confirm('Remove ' + what + '?\n\nTablets with no PIN let anyone who knows the corner hold into settings.')) return;
+  try{
+    await rpc('court_admin_set_staff_pin', { p_club: id || null, p_salt: null, p_hash: null, p_iterations: null });
+    await refresh(); pinMessage('Removed.', true);
+  }catch(e){ pinMessage('Could not remove: ' + e.message); }
+}
+
 // ============================ SHELL ============================
 async function refresh(){
-  await loadAll(); renderClubFilter(); renderDevices(); renderUpdates();
+  await loadAll(); renderClubFilter(); renderDevices(); renderUpdates(); renderPins();
 }
 function show(view){
   ['loginView','deniedView','appView'].forEach(function(v){ $(v).classList.toggle('hidden', v !== view); });
@@ -509,6 +609,7 @@ function setView(v){
   document.querySelectorAll('.nav button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-view') === v); });
   $('viewTablets').classList.toggle('hidden', v !== 'tablets');
   $('viewUpdates').classList.toggle('hidden', v !== 'updates');
+  $('viewPins').classList.toggle('hidden', v !== 'pins');
 }
 async function enter(){
   var ok = false;
@@ -516,7 +617,7 @@ async function enter(){
   if(!ok){ $('deniedText').textContent = (S.email || 'This account') + ' is not a Padeja admin. Ask a super-admin to add you.'; show('deniedView'); return; }
   show('appView');
   await Promise.all([loadReleases(), loadAll()]);
-  renderClubFilter(); renderDevices(); renderUpdates();
+  renderClubFilter(); renderDevices(); renderUpdates(); renderPins();
 }
 
 var mode = 'magic';
@@ -559,6 +660,8 @@ function wire(){
   $('eCourt').addEventListener('input', showPair);
   $('eSave').onclick = saveEdit; $('eDelete').onclick = deleteDevice; $('eCancel').onclick = function(){ $('editDlg').close(); };
   $('fleetApply').onclick = applyFleet; $('clubApply').onclick = applyClub;
+  $('pinSave').onclick = savePin; $('pinRemove').onclick = removePin;
+  $('pinClub').addEventListener('change', function(){ $('pinNew').value = ''; $('pinAgain').value = ''; $('pinMsg').textContent = ''; showPinState(); });
   setInterval(function(){ if(!$('appView').classList.contains('hidden') && !$('editDlg').open) refresh().catch(function(){}); }, 60000);
 }
 
