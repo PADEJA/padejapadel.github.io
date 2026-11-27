@@ -106,6 +106,7 @@
       <div class="field"><label>Name</label><input id="newName" placeholder="e.g. Bacons Osteopath" /></div>
       <div class="field"><label>Description (shown to members)</label><input id="newDesc" placeholder="e.g. 10% off treatments for members" /></div>
       <div class="field"><label>Shared code (optional — leave empty to use a pool of codes)</label><input id="newShared" placeholder="e.g. BACONS10" /></div>
+      <div class="field"><label>Discount value (optional — shown on the members' page, e.g. 20%)</label><input id="newDiscount" placeholder="e.g. 20% off" /></div>
       <button id="addPartnerBtn">Add partnership</button>
       <div class="msg" id="addMsg"></div>
     </div>
@@ -187,6 +188,7 @@
           <div style="flex:1;min-width:200px">
             <div class="field"><label>Name</label><input class="p-name" value="${esc(p.name)}" /></div>
             <div class="field"><label>Description</label><input class="p-desc" value="${esc(p.description)}" /></div>
+            <div class="field"><label>Discount value (shown on the members' page, e.g. 20%)</label><input class="p-discount" value="${esc(p.discount_value||'')}" placeholder="e.g. 20% off" /></div>
           </div>
         </div>
         <div class="badges">${modeBadge}${activeBadge}
@@ -223,6 +225,7 @@
             name: el.querySelector(".p-name").value,
             description: el.querySelector(".p-desc").value,
             shared_code: el.querySelector(".p-shared").value,
+            discount_value: el.querySelector(".p-discount").value,
             active: el.querySelector(".p-active").value === "1"
           });
           await load();
@@ -285,8 +288,8 @@
     if (!name) { flash($("addMsg"), "err", "Please enter a name."); return; }
     const btn = $("addPartnerBtn"); btn.disabled = true; clearMsg($("addMsg"));
     try {
-      await call("add_partner", { name, description: $("newDesc").value, shared_code: $("newShared").value });
-      $("newName").value = ""; $("newDesc").value = ""; $("newShared").value = "";
+      await call("add_partner", { name, description: $("newDesc").value, shared_code: $("newShared").value, discount_value: $("newDiscount").value });
+      $("newName").value = ""; $("newDesc").value = ""; $("newShared").value = ""; $("newDiscount").value = "";
       flash($("addMsg"), "ok", "Partnership added.");
       await load();
     } catch (e) { flash($("addMsg"), "err", e.message); }
