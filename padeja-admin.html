@@ -143,6 +143,7 @@
       <button data-view="tablets" class="on">Tablets</button>
       <button data-view="updates">App updates</button>
       <button data-view="pins">Staff PIN</button>
+      <button data-view="kiosks">Kiosks</button>
       <a href="clubmanager.html">Club manager &rarr;</a>
       <a href="hostmanager.html">Host manager &rarr;</a>
       <a href="clubconsole.html">Club console &rarr;</a>
@@ -220,8 +221,73 @@
         </table></div>
       </div>
     </section>
+
+    <!-- ---------- clubhouse kiosks ---------- -->
+    <section id="viewKiosks" class="hidden">
+      <div class="card hidden" id="kOff"><h2>Clubhouse kiosks</h2><p class="sub" id="kOffText" style="margin:0"></p></div>
+      <div id="kOn">
+        <div class="stats" id="kStats"></div>
+        <div class="card">
+          <div class="toolbar">
+            <input id="kq" type="search" placeholder="Search kiosk, club, address...">
+            <select id="kfClub"><option value="">All clubs</option></select>
+            <button class="btn alt sm" id="kReload">Refresh</button>
+          </div>
+          <div class="scroll">
+            <table>
+              <thead><tr><th>Status</th><th>Kiosk</th><th>Club</th><th>Version</th><th>Target</th><th>Network address</th><th>Last seen</th><th></th></tr></thead>
+              <tbody id="kBody"></tbody>
+            </table>
+          </div>
+          <div class="mini" id="kEmpty" style="margin-top:10px"></div>
+        </div>
+        <div class="card">
+          <h2>Kiosk target version</h2>
+          <p class="sub">Kiosks move to the chosen version just after start-up or between 2am and 5am, or within a few minutes if you ask for it straight away. They always wait for a match to finish. A kiosk target beats a club target, which beats the target for all. Try a new version on one kiosk first. Android will not install a lower build number: to go back, publish the old code as a new higher release (the kiosk rollback script) and choose that.</p>
+          <div class="two">
+            <div class="field"><label for="kFleetTarget">All kiosks</label><select id="kFleetTarget"></select></div>
+            <div class="field"><label>&nbsp;</label><button class="btn" id="kFleetApply">Apply to all kiosks</button></div>
+          </div>
+          <div class="two">
+            <div class="field"><label for="kClubTargetClub">Club</label><select id="kClubTargetClub"></select></div>
+            <div class="field"><label for="kClubTargetVer">Version</label><select id="kClubTargetVer"></select></div>
+          </div>
+          <button class="btn alt sm" id="kClubApply">Apply to this club's kiosks</button>
+          <label class="mini" style="display:flex;gap:8px;align-items:center;margin-top:12px"><input type="checkbox" id="kNow"> Install straight away (otherwise at the next start-up or overnight)</label>
+          <div class="err" id="kUpdMsg"></div>
+        </div>
+        <div class="card">
+          <h2>Kiosk releases</h2>
+          <p class="sub">Signed releases in <a href="https://github.com/PADEJA/padeja-kiosk-releases/releases" target="_blank" rel="noopener">padeja-kiosk-releases</a>.</p>
+          <div class="scroll"><table>
+            <thead><tr><th>Version</th><th>Published</th><th>Kiosks on it</th><th>Notes</th></tr></thead>
+            <tbody id="kRelBody"></tbody>
+          </table></div>
+          <div class="mini" id="kRelMsg" style="margin-top:8px"></div>
+        </div>
+      </div>
+    </section>
   </div>
 </div>
+
+<!-- ===================== edit kiosk ===================== -->
+<dialog id="kDlg">
+  <h3 id="kTitle">Kiosk</h3>
+  <div class="mini" id="kInfo" style="margin-bottom:12px"></div>
+  <div class="two">
+    <div class="field"><label for="kNick">Nickname</label><input id="kNick" maxlength="60" placeholder="e.g. Bar TV"></div>
+    <div class="field"><label for="kActive">Active</label><select id="kActive"><option value="true">Active</option><option value="false">Disabled (no updates)</option></select></div>
+  </div>
+  <div class="field"><label for="kTarget">Target version (this kiosk only)</label><select id="kTarget"></select></div>
+  <label class="mini" style="display:flex;gap:8px;align-items:center;margin-bottom:12px"><input type="checkbox" id="kDevNow"> Install straight away</label>
+  <div class="field"><label for="kNotes">Notes</label><textarea id="kNotes" rows="2" maxlength="500"></textarea></div>
+  <div class="err" id="kMsg"></div>
+  <div class="actions">
+    <button class="btn danger sm" id="kDelete" style="margin-right:auto">Delete</button>
+    <button class="btn alt" id="kCancel">Cancel</button>
+    <button class="btn" id="kSave">Save</button>
+  </div>
+</dialog>
 
 <!-- ===================== edit tablet ===================== -->
 <dialog id="editDlg">
@@ -253,12 +319,15 @@
 var SUPABASE_URL = 'https://odrckirnjavfptlfygbo.supabase.co';
 var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kcmNraXJuamF2ZnB0bGZ5Z2JvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1MzY3MzQsImV4cCI6MjA5NTExMjczNH0.rjoAQhEaTw6Sp-nGrQmYYvLdVKD7ewrKwG1PmMbyYgo';
 var RELEASES_API = 'https://api.github.com/repos/PADEJA/padeja-court-tablet-releases/releases?per_page=30';
+var KIOSK_RELEASES_API = 'https://api.github.com/repos/PADEJA/padeja-kiosk-releases/releases?per_page=30';
+var KIOSK_ONLINE_MS = 7 * 60 * 1000;  // kiosks check in every 2 minutes
 var LS_KEY = 'padeja_admin_refresh';
 var ONLINE_MS = 5 * 60 * 1000;      // tablets check in every minute; 5 quiet minutes = offline
 var DEV_COLS = 'id,serial,android_id,manufacturer,model,android_version,is_device_owner,app_version_code,app_version_name,battery_pct,charging,wifi_rssi,free_storage_mb,update_status,update_error,last_seen_at,first_seen_at,club_id,court_name,nickname,notes,target_version_name,active';
 
 var S = { token:null, refresh:null, uid:null, email:'', devices:[], clubs:[], clubName:{}, courts:[], clubSettings:{}, fleetTarget:null,
-          releases:[], statusFilter:'all', editing:null, pins:null };
+          releases:[], statusFilter:'all', editing:null, pins:null,
+          kiosk:null, kioskError:'', kioskReleases:[], kioskFilter:'all', kioskEditing:null };
 var PIN_ITERATIONS = 150000;   // PBKDF2-HMAC-SHA256; the tablet reads the count that was saved with the PIN
 var $ = function(id){ return document.getElementById(id); };
 function esc(v){ return String(v==null?'':v).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
@@ -436,10 +505,11 @@ function renderDevices(){
 }
 
 // ============================ RENDER: UPDATES ============================
-function versionOptions(selected, inheritLabel){
+function versionOptions(selected, inheritLabel, releases){
+  var list = releases || S.releases;
   var h = '<option value="">' + esc(inheritLabel) + '</option>';
   var seen = {};
-  S.releases.forEach(function(r){ seen[r.name] = true; h += '<option value="' + esc(r.name) + '">' + esc(r.name) + (r === S.releases[0] ? ' (latest)' : '') + '</option>'; });
+  list.forEach(function(r){ seen[r.name] = true; h += '<option value="' + esc(r.name) + '">' + esc(r.name) + (r === list[0] ? ' (latest)' : '') + '</option>'; });
   if(selected && !seen[selected]) h += '<option value="' + esc(selected) + '">' + esc(selected) + '</option>';
   return h;
 }
@@ -596,9 +666,167 @@ async function removePin(){
   }catch(e){ pinMessage('Could not remove: ' + e.message); }
 }
 
+// ============================ CLUBHOUSE KIOSKS ============================
+// Never throws: a problem here must not stop the tablet pages from loading.
+async function loadKiosks(){
+  try{ S.kiosk = await rpc('kiosk_admin_overview'); S.kioskError = ''; }
+  catch(e){
+    S.kiosk = null;
+    S.kioskError = /PGRST202|^404/.test(e.message)
+      ? 'Kiosk management is not switched on in the database yet (sql/kiosk_devices.sql in the kiosk project).'
+      : 'Could not read the kiosks: ' + e.message;
+  }
+}
+async function loadKioskReleases(){
+  try{
+    var res = await fetch(KIOSK_RELEASES_API, { headers:{ Accept:'application/vnd.github+json' } });
+    if(!res.ok) throw new Error('GitHub answered ' + res.status);
+    var list = await res.json();
+    S.kioskReleases = list.filter(function(x){ return x && x.tag_name && !x.draft; }).map(function(x){
+      return { name: String(x.tag_name).replace(/^v/, ''), published: x.published_at, notes: x.body || '' };
+    });
+    $('kRelMsg').textContent = '';
+  }catch(e){
+    S.kioskReleases = [];
+    $('kRelMsg').textContent = 'Could not read the release list (' + e.message + ').';
+  }
+}
+function kioskClub(code){ return ((S.kiosk && S.kiosk.clubs) || []).find(function(c){ return c.club_code === code; }) || null; }
+function kioskClubName(code){ var c = kioskClub(code); return c ? c.club_name : code; }
+function kioskTarget(d){
+  var c = kioskClub(d.club_code);
+  return d.target_version_name || (c && c.target_version_name) || (S.kiosk && S.kiosk.fleet_target) || null;
+}
+function kioskOnline(d){ return d.last_seen_at && (Date.now() - new Date(d.last_seen_at).getTime()) < KIOSK_ONLINE_MS; }
+// One status per kiosk, worst first.
+function kioskStatus(d){
+  if(!d.active) return { key:'disabled', label:'Disabled', cls:'' };
+  if(!kioskOnline(d)) return { key:'offline', label:'Offline', cls:'bad' };
+  if(d.can_install === false || d.can_reopen === false) return { key:'attention', label:'Needs permission', cls:'bad' };
+  var t = kioskTarget(d);
+  if(!t) return { key:'untargeted', label:'No version chosen', cls:'info' };
+  if(d.app_version_name !== t) return { key:'behind', label:d.update_requested_at ? 'Update requested' : 'Update pending', cls:'warn' };
+  return { key:'ok', label:'Up to date', cls:'good' };
+}
+function kioskLabel(d){ return d.nickname || ((d.manufacturer ? d.manufacturer + ' ' : '') + (d.model || 'Kiosk')); }
+var KIOSK_STATS = [['all','All kiosks'], ['ok','Up to date'], ['behind','Needs update'], ['attention','Needs permission'], ['offline','Offline']];
+function renderKiosks(){
+  var on = !!S.kiosk;
+  $('kOff').classList.toggle('hidden', on);
+  $('kOn').classList.toggle('hidden', !on);
+  if(!on){ $('kOffText').textContent = S.kioskError || 'Loading...'; return; }
+  var devices = S.kiosk.devices || [], clubs = S.kiosk.clubs || [];
+  var counts = { all:devices.length };
+  KIOSK_STATS.forEach(function(s){ if(s[0] !== 'all') counts[s[0]] = 0; });
+  devices.forEach(function(d){ var k = kioskStatus(d).key; if(counts[k] !== undefined) counts[k]++; });
+  $('kStats').innerHTML = KIOSK_STATS.map(function(s){
+    return '<div class="stat' + (S.kioskFilter === s[0] ? ' on' : '') + '" data-kstat="' + s[0] + '"><b>' + counts[s[0]] + '</b><span>' + esc(s[1]) + '</span></div>';
+  }).join('');
+
+  var curFilter = $('kfClub').value;
+  var clubOptions = clubs.map(function(c){ return '<option value="' + esc(c.club_code) + '">' + esc(c.club_name) + '</option>'; }).join('');
+  $('kfClub').innerHTML = '<option value="">All clubs</option>' + clubOptions;
+  $('kfClub').value = curFilter;
+
+  var q = $('kq').value.trim().toLowerCase(), club = $('kfClub').value;
+  var rows = devices.filter(function(d){
+    if(S.kioskFilter !== 'all' && kioskStatus(d).key !== S.kioskFilter) return false;
+    if(club && d.club_code !== club) return false;
+    if(!q) return true;
+    return [d.nickname, d.manufacturer, d.model, d.club_code, kioskClubName(d.club_code), d.local_ip, d.notes].join(' ').toLowerCase().indexOf(q) >= 0;
+  });
+  $('kBody').innerHTML = rows.map(function(d){
+    var st = kioskStatus(d), t = kioskTarget(d);
+    return '<tr class="row">' +
+      '<td><span class="chip ' + st.cls + '">' + esc(st.label) + '</span>' + (st.key !== 'ok' && d.update_note ? '<div class="mini">' + esc(d.update_note) + '</div>' : '') + '</td>' +
+      '<td><b>' + esc(kioskLabel(d)) + '</b><div class="mini">' + esc([d.manufacturer, d.model].filter(Boolean).join(' ')) + ' &middot; Android ' + esc(d.android_version || '?') + '</div></td>' +
+      '<td>' + esc(kioskClubName(d.club_code)) + '</td>' +
+      '<td>' + esc(d.app_version_name || '-') + '</td>' +
+      '<td>' + (t ? esc(t) : '<span class="faint">none</span>') + '</td>' +
+      '<td>' + (d.local_ip ? esc(d.local_ip) : '<span class="faint">-</span>') + '</td>' +
+      '<td>' + esc(ago(d.last_seen_at)) + '</td>' +
+      '<td><button class="btn alt sm" data-kedit="' + esc(d.id) + '">Manage</button></td></tr>';
+  }).join('');
+  $('kEmpty').textContent = rows.length ? '' : (devices.length ? 'No kiosks match this filter.' : 'No kiosks have checked in yet. A kiosk on version 1.0.6 or later appears here a minute after it is opened and set up.');
+
+  var fleetSel = $('kFleetTarget'), clubSel = $('kClubTargetClub'), verSel = $('kClubTargetVer');
+  var keepClub = clubSel.value, keepVer = verSel.value;
+  // don't overwrite a choice the user is in the middle of making
+  if(document.activeElement !== fleetSel){
+    fleetSel.innerHTML = versionOptions(S.kiosk.fleet_target, 'No target (do not update)', S.kioskReleases);
+    fleetSel.value = S.kiosk.fleet_target || '';
+  }
+  clubSel.innerHTML = clubs.map(function(c){
+    return '<option value="' + esc(c.club_code) + '">' + esc(c.club_name) + (c.target_version_name ? ' (target ' + esc(c.target_version_name) + ')' : '') + '</option>'; }).join('') || '<option value="">(no clubs)</option>';
+  if(keepClub) clubSel.value = keepClub;
+  verSel.innerHTML = versionOptions(null, "Clear this club's target", S.kioskReleases);
+  verSel.value = keepVer;
+
+  var onVer = {}; devices.forEach(function(d){ var v = d.app_version_name || '?'; onVer[v] = (onVer[v]||0) + 1; });
+  $('kRelBody').innerHTML = S.kioskReleases.map(function(r, i){
+    var first = (r.notes || '').split('\n').filter(function(l){ return l.trim() && !/^SHA-256/i.test(l) && !/^Padeja Clubhouse/i.test(l); })[0] || '';
+    return '<tr><td><b>' + esc(r.name) + '</b>' + (i === 0 ? ' <span class="chip info">latest</span>' : '') + '</td><td>' + esc(r.published ? new Date(r.published).toLocaleString() : '') + '</td><td>' + (onVer[r.name] || 0) + '</td><td class="mini">' + esc(first) + '</td></tr>';
+  }).join('') || '<tr><td colspan="4" class="faint">No releases published yet.</td></tr>';
+}
+function openKiosk(id){
+  var d = ((S.kiosk && S.kiosk.devices) || []).find(function(x){ return x.id === id; }); if(!d) return;
+  S.kioskEditing = d;
+  var perm = function(v){ return v === true ? 'on' : v === false ? 'OFF' : '?'; };
+  $('kTitle').textContent = kioskLabel(d);
+  $('kInfo').innerHTML = esc(kioskClubName(d.club_code)) + ' &middot; app ' + esc(d.app_version_name || '?') + ' (build ' + esc(d.app_version_code == null ? '?' : d.app_version_code) + ')' +
+    '<br>Opens by itself: ' + perm(d.can_reopen) + ' &middot; may install updates: ' + perm(d.can_install) +
+    (d.local_ip ? '<br>On the club network: adb connect ' + esc(d.local_ip) + ':5555' : '') +
+    '<br>First seen ' + esc(d.first_seen_at ? new Date(d.first_seen_at).toLocaleDateString() : '?') + ' &middot; last seen ' + esc(ago(d.last_seen_at)) +
+    (d.update_note ? '<br>Kiosk says: ' + esc(d.update_note) : '');
+  $('kNick').value = d.nickname || '';
+  $('kActive').value = d.active ? 'true' : 'false';
+  $('kTarget').innerHTML = versionOptions(d.target_version_name, 'Use the club target, or the one for all', S.kioskReleases);
+  $('kTarget').value = d.target_version_name || '';
+  $('kDevNow').checked = false;
+  $('kNotes').value = d.notes || '';
+  $('kMsg').textContent = '';
+  $('kDlg').showModal();
+}
+async function saveKiosk(){
+  var d = S.kioskEditing; if(!d) return;
+  var v = $('kTarget').value || null;
+  $('kSave').disabled = true; $('kMsg').textContent = '';
+  try{
+    await rpc('kiosk_admin_update_device', { p_device_id: d.id, p_patch: {
+      nickname: $('kNick').value.trim() || null, notes: $('kNotes').value.trim() || null,
+      active: $('kActive').value === 'true', target_version_name: v } });
+    if($('kDevNow').checked) await rpc('kiosk_admin_set_target', { p_scope:'device', p_id:d.id, p_version:v, p_now:true });
+    $('kDlg').close(); await refresh();
+  }catch(e){ $('kMsg').textContent = 'Could not save: ' + e.message; }
+  $('kSave').disabled = false;
+}
+async function deleteKiosk(){
+  var d = S.kioskEditing; if(!d) return;
+  if(!confirm('Delete "' + kioskLabel(d) + '" from the console?\n\nIf the kiosk is still running it will register itself again.')) return;
+  try{ await rpc('kiosk_admin_delete_device', { p_device_id: d.id }); $('kDlg').close(); await refresh(); }
+  catch(e){ $('kMsg').textContent = 'Could not delete: ' + e.message; }
+}
+async function setKioskTarget(scope, id, version, question){
+  var now = $('kNow').checked;
+  if(!confirm(question + (now && version ? '\n\nThey will install it within a few minutes (after any match).' : version ? '\n\nThey will install it at their next start-up or overnight.' : ''))) return;
+  try{
+    await rpc('kiosk_admin_set_target', { p_scope:scope, p_id:id, p_version:version, p_now: now && !!version });
+    $('kNow').checked = false; $('kUpdMsg').className = 'err ok'; $('kUpdMsg').textContent = 'Saved.'; await refresh();
+  }catch(e){ $('kUpdMsg').className = 'err'; $('kUpdMsg').textContent = 'Could not save: ' + e.message; }
+}
+function applyKioskFleet(){
+  var v = $('kFleetTarget').value || null;
+  setKioskTarget('fleet', null, v, v ? 'Move EVERY kiosk to version ' + v + '?' : 'Remove the target for all kiosks? They keep the version they have.');
+}
+function applyKioskClub(){
+  var club = $('kClubTargetClub').value, v = $('kClubTargetVer').value || null;
+  if(!club) return;
+  setKioskTarget('club', club, v, v ? 'Move every kiosk at ' + kioskClubName(club) + ' to ' + v + '?' : 'Clear the target for ' + kioskClubName(club) + '?');
+}
+
 // ============================ SHELL ============================
 async function refresh(){
-  await loadAll(); renderClubFilter(); renderDevices(); renderUpdates(); renderPins();
+  await Promise.all([loadAll(), loadKiosks()]); renderClubFilter(); renderDevices(); renderUpdates(); renderPins(); renderKiosks();
 }
 function show(view){
   ['loginView','deniedView','appView'].forEach(function(v){ $(v).classList.toggle('hidden', v !== view); });
@@ -610,14 +838,15 @@ function setView(v){
   $('viewTablets').classList.toggle('hidden', v !== 'tablets');
   $('viewUpdates').classList.toggle('hidden', v !== 'updates');
   $('viewPins').classList.toggle('hidden', v !== 'pins');
+  $('viewKiosks').classList.toggle('hidden', v !== 'kiosks');
 }
 async function enter(){
   var ok = false;
   try{ ok = (await rpc('is_super_admin')) === true; }catch(e){ ok = false; }
   if(!ok){ $('deniedText').textContent = (S.email || 'This account') + ' is not a Padeja admin. Ask a super-admin to add you.'; show('deniedView'); return; }
   show('appView');
-  await Promise.all([loadReleases(), loadAll()]);
-  renderClubFilter(); renderDevices(); renderUpdates(); renderPins();
+  await Promise.all([loadReleases(), loadAll(), loadKiosks(), loadKioskReleases()]);
+  renderClubFilter(); renderDevices(); renderUpdates(); renderPins(); renderKiosks();
 }
 
 var mode = 'magic';
@@ -662,7 +891,14 @@ function wire(){
   $('fleetApply').onclick = applyFleet; $('clubApply').onclick = applyClub;
   $('pinSave').onclick = savePin; $('pinRemove').onclick = removePin;
   $('pinClub').addEventListener('change', function(){ $('pinNew').value = ''; $('pinAgain').value = ''; $('pinMsg').textContent = ''; showPinState(); });
-  setInterval(function(){ if(!$('appView').classList.contains('hidden') && !$('editDlg').open) refresh().catch(function(){}); }, 60000);
+  $('kReload').onclick = function(){ Promise.all([loadKioskReleases(), refresh()]).then(renderKiosks); };
+  $('kq').addEventListener('input', renderKiosks);
+  $('kfClub').addEventListener('change', renderKiosks);
+  $('kStats').addEventListener('click', function(e){ var s = e.target.closest('[data-kstat]'); if(!s) return; S.kioskFilter = s.getAttribute('data-kstat'); renderKiosks(); });
+  $('kBody').addEventListener('click', function(e){ var b = e.target.closest('[data-kedit]'); if(b) openKiosk(b.getAttribute('data-kedit')); });
+  $('kSave').onclick = saveKiosk; $('kDelete').onclick = deleteKiosk; $('kCancel').onclick = function(){ $('kDlg').close(); };
+  $('kFleetApply').onclick = applyKioskFleet; $('kClubApply').onclick = applyKioskClub;
+  setInterval(function(){ if(!$('appView').classList.contains('hidden') && !$('editDlg').open && !$('kDlg').open) refresh().catch(function(){}); }, 60000);
 }
 
 (async function boot(){
