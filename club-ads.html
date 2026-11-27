@@ -1,0 +1,485 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Padeja - Court tablet screens</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800;900&display=swap">
+<style>
+  /* Tokens: DESIGN.md section 8 (web). Do not add colours here; add them to DESIGN.md first. */
+  :root{
+    --bg:#0A1624; --card:#162035; --border:#1E3050; --deep:#0D1B2E;
+    --brand:#3BC8F5; --secondary:#8AA4C0; --tertiary:#5A7A99; --text:#FFFFFF;
+    --win:#3DE39E; --loss:#F56040; --draw:#F5B83D; --orange:#F09537;
+    --green:#35D6A4; --teal:#00D4AA; --danger:#E24B4A; --success:#1D9E75;
+    --radius:12px; --radius-lg:14px; --radius-sm:10px;
+    --body:"Hanken Grotesk",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:radial-gradient(900px 500px at 0% -10%, rgba(59,200,245,.08), transparent 60%), var(--bg);
+    color:var(--text);font-family:var(--body);min-height:100vh;-webkit-font-smoothing:antialiased}
+  a{color:var(--brand)}
+  button,input,select,textarea{font-family:inherit;font-size:14px}
+  button{cursor:pointer}
+  .hidden{display:none !important}
+  header{display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:5;flex-wrap:wrap}
+  .logo{font-weight:900;font-size:20px;letter-spacing:.5px}
+  .logo i{color:var(--brand);font-style:normal}
+  .logo small{display:block;font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--tertiary)}
+  header .right{margin-left:auto;display:flex;gap:10px;align-items:center;color:var(--secondary);font-size:13px;flex-wrap:wrap}
+  header select{width:auto;max-width:260px}
+  .wrap{max-width:1000px;margin:0 auto;padding:22px}
+  .btn{background:var(--brand);color:#000;border:0;border-radius:var(--radius-sm);padding:10px 16px;font-weight:700}
+  .btn:hover{filter:brightness(1.07)}
+  .btn.alt{background:transparent;color:var(--text);border:1px solid var(--border)}
+  .btn.danger{background:transparent;color:var(--loss);border:1px solid var(--danger)}
+  .btn.sm{padding:7px 12px;font-size:13px}
+  .btn:disabled{opacity:.5;cursor:default}
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;margin-bottom:16px}
+  .card h2{font-size:16px;font-weight:800;margin-bottom:4px}
+  .sub{color:var(--secondary);font-size:13px;margin-bottom:14px}
+  .muted{color:var(--secondary)} .faint{color:var(--tertiary)}
+  .err{color:var(--loss);font-size:14px;font-weight:600;min-height:20px;margin-top:8px}
+  .ok{color:var(--win)}
+  .login{max-width:440px;margin:8vh auto}
+  .login h1{font-size:26px;font-weight:900;margin-bottom:4px}
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:11px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--secondary);margin-bottom:6px}
+  input,select,textarea{width:100%;background:var(--deep);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px}
+  input[type=checkbox]{width:auto}
+  input::placeholder{color:var(--tertiary)}
+  .sso{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+  .or{display:flex;align-items:center;gap:10px;color:var(--tertiary);font-size:12px;margin:14px 0}
+  .or::before,.or::after{content:"";flex:1;height:1px;background:var(--border)}
+  .tabs2{display:flex;gap:6px;margin-bottom:12px}.tabs2 button{flex:1}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .inline{display:flex;align-items:center;gap:8px}
+  .drop{border:2px dashed var(--border);border-radius:var(--radius);padding:22px;text-align:center;color:var(--secondary);cursor:pointer}
+  .drop.over{border-color:var(--brand);color:var(--text)}
+
+  .slide{display:grid;grid-template-columns:200px 1fr;gap:16px;background:var(--deep);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:12px}
+  .slide.off{opacity:.6}
+  .thumb{width:200px;aspect-ratio:16/10;background:#000;border-radius:8px;object-fit:contain;border:1px solid var(--border)}
+  .slide .grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:10px}
+  .courts{display:flex;flex-wrap:wrap;gap:8px 14px;margin-top:10px;align-items:center}
+  .courts label{display:flex;align-items:center;gap:6px;font-size:13px;color:var(--secondary)}
+  .tools{display:flex;gap:8px;margin-top:10px;align-items:center;flex-wrap:wrap}
+  .pill{display:inline-block;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:var(--border);color:var(--secondary)}
+  .pill.good{background:rgba(61,227,158,.15);color:var(--win)}
+  .pill.bad{background:rgba(226,75,74,.18);color:var(--loss)}
+  .savebar{position:sticky;bottom:0;background:var(--bg);border-top:1px solid var(--border);padding:12px 22px;display:flex;gap:12px;align-items:center;justify-content:space-between;z-index:4}
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:8px 8px;border-bottom:1px solid var(--border);font-size:14px}
+  th{font-size:11px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--tertiary)}
+  .mini{font-size:12px;color:var(--secondary)}
+  @media (max-width:760px){ .slide{grid-template-columns:1fr} .thumb{width:100%} .slide .grid{grid-template-columns:1fr 1fr} .row2{grid-template-columns:1fr} .wrap{padding:14px} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><i>PADEJA</i> Court tablets<small>Idle screens &amp; sponsors</small></div>
+  <div class="right">
+    <select id="clubSel" class="hidden"></select>
+    <span id="who"></span><button class="btn alt sm hidden" id="signout">Sign out</button>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="loginView" class="login hidden">
+    <div class="card">
+      <h1>Court tablet screens</h1>
+      <p class="sub">Sign in with your club manager account.</p>
+      <div class="sso">
+        <button class="btn alt" id="ssoGoogle">Continue with Google</button>
+        <button class="btn alt" id="ssoApple">Continue with Apple</button>
+        <button class="btn alt" id="ssoMicrosoft" style="grid-column:1 / -1">Continue with Microsoft</button>
+      </div>
+      <div class="or">or</div>
+      <div class="tabs2">
+        <button class="btn sm" id="tabMagic">Email link</button>
+        <button class="btn alt sm" id="tabPass">Password</button>
+      </div>
+      <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="username"></div>
+      <div class="field hidden" id="passField"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password"></div>
+      <button class="btn" style="width:100%" id="loginGo">Email me a sign-in link</button>
+      <div class="err" id="loginMsg"></div>
+    </div>
+  </div>
+
+  <div id="deniedView" class="login hidden"><div class="card"><h1>No access</h1><p class="sub" id="deniedText"></p></div></div>
+
+  <div id="appView" class="hidden">
+
+    <div class="card">
+      <h2>When do the screens start?</h2>
+      <p class="sub">When nobody has touched a court's tablets for this long (and no match is on), they switch to your slides. Touching either tablet wakes both.</p>
+      <div class="row2">
+        <div class="field"><label>Idle screen</label><div class="inline"><input type="checkbox" id="idleOn"> <label for="idleOn" style="margin:0;text-transform:none;letter-spacing:0;font-size:14px;color:var(--text)">Show slides when a court is quiet</label></div></div>
+        <div class="field"><label for="idleSecs">Start after (seconds)</label><input id="idleSecs" type="number" min="20" max="3600" step="10"></div>
+      </div>
+      <button class="btn sm" id="saveIdle">Save idle settings</button>
+      <span class="err" id="idleMsg"></span>
+    </div>
+
+    <div class="card">
+      <h2>Slides</h2>
+      <p class="sub">Add pictures (JPEG, PNG or WebP). They are resized for the tablets. Each slide shows for the seconds you choose, then the next, looping. Tablets on the same court always show the same slide at the same moment.</p>
+      <div class="drop" id="drop">Drop pictures here, or tap to choose
+        <input type="file" id="file" accept="image/jpeg,image/png,image/webp" multiple class="hidden"></div>
+      <div class="err" id="upMsg"></div>
+    </div>
+
+    <div id="slides"></div>
+    <div class="card hidden" id="emptyCard"><p class="muted">No slides yet. Add some pictures above and the tablets will start showing them.</p></div>
+
+    <div class="card">
+      <h2>Your tablets</h2>
+      <p class="sub" id="tabSub"></p>
+      <table><thead><tr><th>Court</th><th>Tablets</th><th>Last seen</th></tr></thead><tbody id="tabBody"></tbody></table>
+    </div>
+    <div style="height:70px"></div>
+  </div>
+</div>
+
+<div class="savebar hidden" id="saveBar">
+  <div><b id="loopInfo"></b> <span class="mini" id="saveInfo"></span></div>
+  <div class="inline">
+    <span class="err" id="saveMsg" style="margin:0"></span>
+    <button class="btn alt" id="discard">Discard changes</button>
+    <button class="btn" id="save">Save &amp; send to tablets</button>
+  </div>
+</div>
+
+<script>
+(function(){
+'use strict';
+
+var SUPABASE_URL = 'https://odrckirnjavfptlfygbo.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kcmNraXJuamF2ZnB0bGZ5Z2JvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1MzY3MzQsImV4cCI6MjA5NTExMjczNH0.rjoAQhEaTw6Sp-nGrQmYYvLdVKD7ewrKwG1PmMbyYgo';
+var LS_KEY = 'padeja_clubads_refresh';
+var BUCKET = 'club-ads';
+var MAX_W = 1920, MAX_H = 1200;
+
+var S = { token:null, refresh:null, uid:null, email:'', clubs:[], clubId:null, slides:[], courtNames:[], devices:[], dirty:false, removed:[] };
+var $ = function(id){ return document.getElementById(id); };
+function esc(v){ return String(v==null?'':v).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+// ============================ AUTH ============================
+function parseJwt(t){ try{ return JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))); }catch(e){ return {}; } }
+function setSession(a, r){ S.token = a; S.refresh = r; var p = parseJwt(a); S.uid = p.sub; S.email = p.email || ''; try{ localStorage.setItem(LS_KEY, r); }catch(e){} }
+function clearSession(){ S.token = S.refresh = S.uid = null; try{ localStorage.removeItem(LS_KEY); }catch(e){} }
+function authHeaders(){ return { apikey:SUPABASE_KEY, 'Content-Type':'application/json' }; }
+function backHere(){ return location.origin + location.pathname; }
+async function loginPassword(email, password){
+  var res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', { method:'POST', headers:authHeaders(), body:JSON.stringify({ email:email, password:password }) });
+  var d = await res.json(); if(!res.ok) throw new Error(d.error_description || d.msg || d.error || 'Sign-in failed');
+  setSession(d.access_token, d.refresh_token);
+}
+async function sendMagicLink(email){
+  var res = await fetch(SUPABASE_URL + '/auth/v1/otp?redirect_to=' + encodeURIComponent(backHere()), { method:'POST', headers:authHeaders(), body:JSON.stringify({ email:email, create_user:false }) });
+  if(!res.ok){ var d = {}; try{ d = await res.json(); }catch(e){} throw new Error(d.msg || d.error_description || d.error || 'Could not send the link'); }
+}
+function ssoStart(p){ location.href = SUPABASE_URL + '/auth/v1/authorize?provider=' + encodeURIComponent(p) + '&redirect_to=' + encodeURIComponent(backHere()); }
+async function refreshSession(){
+  var res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token', { method:'POST', headers:authHeaders(), body:JSON.stringify({ refresh_token:S.refresh }) });
+  if(!res.ok) throw new Error('session expired');
+  var d = await res.json(); setSession(d.access_token, d.refresh_token);
+}
+function takeHashSession(){
+  var h = location.hash || '';
+  if(h.indexOf('error_description=') >= 0){ var e = new URLSearchParams(h.slice(1)).get('error_description'); history.replaceState(null,'',location.pathname+location.search); return { error: e || 'Sign-in failed' }; }
+  if(h.indexOf('access_token=') >= 0){
+    var p = new URLSearchParams(h.slice(1)), a = p.get('access_token'), r = p.get('refresh_token');
+    history.replaceState(null,'',location.pathname+location.search);
+    if(a && r){ setSession(a, r); return { ok:true }; }
+  }
+  return null;
+}
+
+// ============================ DATA ACCESS ============================
+async function api(method, path, body, extra, retried){
+  var headers = { apikey:SUPABASE_KEY, Authorization:'Bearer ' + S.token, 'Content-Type':'application/json' };
+  if(extra) Object.keys(extra).forEach(function(k){ headers[k] = extra[k]; });
+  var res = await fetch(SUPABASE_URL + '/rest/v1/' + path, { method:method, headers:headers, body: body === undefined ? undefined : JSON.stringify(body) });
+  if(res.status === 401 && !retried){ await refreshSession(); return api(method, path, body, extra, true); }
+  if(!res.ok){ var t = await res.text(); throw new Error(res.status + ' ' + t); }
+  var ct = res.headers.get('content-type') || '';
+  return ct.indexOf('json') >= 0 ? res.json() : null;
+}
+async function storage(method, path, body, contentType){
+  var res = await fetch(SUPABASE_URL + '/storage/v1/' + path, { method:method, headers:{ apikey:SUPABASE_KEY, Authorization:'Bearer ' + S.token, 'Content-Type': contentType || 'application/json' }, body: body });
+  if(!res.ok){ var t = await res.text(); throw new Error(res.status + ' ' + t); }
+}
+function publicUrl(path){ return SUPABASE_URL + '/storage/v1/object/public/' + BUCKET + '/' + String(path).split('/').map(encodeURIComponent).join('/'); }
+
+async function loadClubs(){
+  var isSA = false; try{ isSA = (await api('POST','rpc/is_super_admin',{})) === true; }catch(e){}
+  var map = {};
+  if(isSA){
+    (await api('GET','clubs?select=id,name&order=name&limit=2000') || []).forEach(function(c){ map[c.id] = c.name; });
+  } else {
+    var a = [], b = [];
+    try{ a = await api('GET','court_booking_admins?select=club_id,clubs(id,name)&profile_id=eq.' + S.uid) || []; }catch(e){}
+    try{ b = await api('GET','club_organisers?select=club_id,clubs(id,name)&user_id=eq.' + S.uid) || []; }catch(e){}
+    a.concat(b).forEach(function(r){ if(r.clubs) map[r.club_id] = r.clubs.name; });
+  }
+  S.clubs = Object.keys(map).map(function(id){ return { id:id, name:map[id] }; }).sort(function(x,y){ return x.name.localeCompare(y.name); });
+}
+
+async function loadClub(){
+  var id = S.clubId;
+  var r = await Promise.all([
+    api('GET','club_ads?club_id=eq.' + id + '&select=id,image_path,title,seconds,sort_order,active,starts_on,ends_on,court_names,created_at&order=sort_order,created_at'),
+    api('GET','court_club_settings?club_id=eq.' + id + '&select=idle_enabled,idle_after_seconds'),
+    api('GET','courts?club_id=eq.' + id + '&active=eq.true&select=name&order=sort_order'),
+    api('GET','court_devices?club_id=eq.' + id + '&select=court_name,last_seen_at,active').catch(function(){ return []; })
+  ]);
+  S.slides = (r[0] || []).map(function(x){ return { id:x.id, path:x.image_path, title:x.title || '', seconds:x.seconds, active:x.active, starts:x.starts_on || '', ends:x.ends_on || '', courts:x.court_names && x.court_names.length ? x.court_names.slice() : null, isNew:false }; });
+  var st = (r[1] && r[1][0]) || { idle_enabled:true, idle_after_seconds:120 };
+  $('idleOn').checked = st.idle_enabled; $('idleSecs').value = st.idle_after_seconds;
+  var names = {};
+  (r[2]||[]).forEach(function(c){ names[c.name] = true; });
+  S.devices = r[3] || [];
+  S.devices.forEach(function(d){ if(d.court_name) names[d.court_name] = true; });
+  S.courtNames = Object.keys(names).sort(function(a,b){ return a.localeCompare(b, undefined, {numeric:true}); });
+  S.removed = []; setDirty(false);
+  renderSlides(); renderTablets();
+}
+
+// ============================ RENDER ============================
+function ago(iso){
+  if(!iso) return 'never'; var s = Math.max(0, Math.round((Date.now() - new Date(iso).getTime())/1000));
+  if(s < 60) return s + 's ago'; if(s < 3600) return Math.round(s/60) + ' min ago'; if(s < 86400) return Math.round(s/3600) + ' h ago'; return Math.round(s/86400) + ' d ago';
+}
+function renderTablets(){
+  var by = {};
+  S.devices.forEach(function(d){ if(!d.active || !d.court_name) return; var k = d.court_name; by[k] = by[k] || { n:0, seen:null }; by[k].n++; if(d.last_seen_at && (!by[k].seen || d.last_seen_at > by[k].seen)) by[k].seen = d.last_seen_at; });
+  var names = Object.keys(by).sort(function(a,b){ return a.localeCompare(b, undefined, {numeric:true}); });
+  $('tabSub').textContent = names.length ? 'Tablets pick up changes within about a minute of you saving.' : 'No tablets are assigned to your courts yet. Ask Padeja to assign them; your slides then appear on them automatically.';
+  $('tabBody').innerHTML = names.map(function(n){
+    var online = by[n].seen && (Date.now() - new Date(by[n].seen).getTime()) < 5*60*1000;
+    return '<tr><td><b>' + esc(n) + '</b></td><td>' + by[n].n + (by[n].n > 1 ? ' <span class="mini">paired</span>' : '') + '</td><td><span class="pill ' + (online ? 'good' : 'bad') + '">' + (online ? 'online' : 'offline') + '</span> <span class="mini">' + esc(ago(by[n].seen)) + '</span></td></tr>';
+  }).join('');
+}
+function renderSlides(){
+  $('emptyCard').classList.toggle('hidden', S.slides.length > 0);
+  $('slides').innerHTML = S.slides.map(function(s, i){
+    var all = !s.courts;
+    var courts = S.courtNames.length ? S.courtNames.map(function(n){
+      var on = all || s.courts.indexOf(n) >= 0;
+      return '<label><input type="checkbox" data-i="' + i + '" data-court="' + esc(n) + '"' + (on ? ' checked' : '') + (all ? ' disabled' : '') + '> ' + esc(n) + '</label>';
+    }).join('') : '<span class="mini">Courts appear here once tablets are assigned to them.</span>';
+    return '<div class="slide' + (s.active ? '' : ' off') + '">' +
+      '<img class="thumb" alt="" src="' + esc(s.isNew && s.preview ? s.preview : publicUrl(s.path)) + '">' +
+      '<div>' +
+        '<div class="grid">' +
+          '<div class="field"><label>Title (for you)</label><input data-i="' + i + '" data-f="title" value="' + esc(s.title) + '" maxlength="80"></div>' +
+          '<div class="field"><label>Seconds</label><input data-i="' + i + '" data-f="seconds" type="number" min="3" max="120" value="' + esc(s.seconds) + '"></div>' +
+          '<div class="field"><label>From</label><input data-i="' + i + '" data-f="starts" type="date" value="' + esc(s.starts) + '"></div>' +
+          '<div class="field"><label>Until</label><input data-i="' + i + '" data-f="ends" type="date" value="' + esc(s.ends) + '"></div>' +
+        '</div>' +
+        '<div class="courts"><label><input type="checkbox" data-i="' + i + '" data-all="1"' + (all ? ' checked' : '') + '> <b>All courts</b></label>' + courts + '</div>' +
+        '<div class="tools">' +
+          '<label class="inline mini"><input type="checkbox" data-i="' + i + '" data-f="active"' + (s.active ? ' checked' : '') + '> Showing</label>' +
+          '<button class="btn alt sm" data-up="' + i + '"' + (i === 0 ? ' disabled' : '') + '>Move up</button>' +
+          '<button class="btn alt sm" data-down="' + i + '"' + (i === S.slides.length - 1 ? ' disabled' : '') + '>Move down</button>' +
+          '<button class="btn danger sm" data-del="' + i + '">Remove</button>' +
+          (s.isNew ? '<span class="pill">new</span>' : '') +
+        '</div>' +
+      '</div></div>';
+  }).join('');
+  updateLoopInfo();
+}
+function updateLoopInfo(){
+  var live = S.slides.filter(function(s){ return s.active; });
+  var total = live.reduce(function(a, s){ return a + (parseInt(s.seconds, 10) || 0); }, 0);
+  $('loopInfo').textContent = live.length ? live.length + ' slide' + (live.length > 1 ? 's' : '') + ' showing · a full loop takes ' + total + 's' : 'No slides showing';
+}
+function setDirty(v){ S.dirty = v; $('saveBar').classList.toggle('hidden', !v && !S.slides.length); $('save').disabled = !v; $('discard').disabled = !v; $('saveInfo').textContent = v ? 'Unsaved changes' : 'Everything is saved'; if(!v) $('saveMsg').textContent = ''; }
+
+// ============================ EDITING ============================
+function onSlidesInput(e){
+  var t = e.target, i = t.getAttribute('data-i'); if(i === null) return;
+  var s = S.slides[+i]; if(!s) return;
+  if(t.hasAttribute('data-all')){
+    s.courts = t.checked ? null : S.courtNames.slice();
+    setDirty(true); renderSlides(); return;
+  }
+  if(t.hasAttribute('data-court')){
+    var n = t.getAttribute('data-court'); var cur = s.courts ? s.courts.slice() : S.courtNames.slice();
+    var at = cur.indexOf(n);
+    if(t.checked && at < 0) cur.push(n); if(!t.checked && at >= 0) cur.splice(at, 1);
+    s.courts = cur.length === S.courtNames.length ? null : cur;   // every court ticked = "all courts"
+    if(s.courts && !s.courts.length){ $('saveMsg').className = 'err'; $('saveMsg').textContent = 'Tick at least one court, or choose All courts.'; }
+    setDirty(true); renderSlides(); return;
+  }
+  var f = t.getAttribute('data-f'); if(!f) return;
+  if(f === 'active'){ s.active = t.checked; setDirty(true); renderSlides(); return; }
+  s[f] = t.value; setDirty(true); updateLoopInfo();
+}
+function onSlidesClick(e){
+  var b = e.target.closest('button'); if(!b) return;
+  var up = b.getAttribute('data-up'), down = b.getAttribute('data-down'), del = b.getAttribute('data-del');
+  if(up !== null){ var i = +up; if(i > 0){ var t = S.slides[i]; S.slides[i] = S.slides[i-1]; S.slides[i-1] = t; setDirty(true); renderSlides(); } }
+  if(down !== null){ var j = +down; if(j < S.slides.length - 1){ var u = S.slides[j]; S.slides[j] = S.slides[j+1]; S.slides[j+1] = u; setDirty(true); renderSlides(); } }
+  if(del !== null){
+    var k = +del, s = S.slides[k];
+    if(!confirm('Remove "' + (s.title || 'this slide') + '"? It stops showing on the tablets when you save.')) return;
+    if(!s.isNew) S.removed.push(s); S.slides.splice(k, 1); setDirty(true); renderSlides();
+  }
+}
+
+// ---- adding pictures: resized in the browser to fit the tablets, uploaded when you press Save ----
+function resizeToJpeg(file){
+  return new Promise(function(resolve, reject){
+    var url = URL.createObjectURL(file), img = new Image();
+    img.onload = function(){
+      var k = Math.min(1, MAX_W / img.width, MAX_H / img.height);
+      var w = Math.max(1, Math.round(img.width * k)), h = Math.max(1, Math.round(img.height * k));
+      var c = document.createElement('canvas'); c.width = w; c.height = h;
+      var g = c.getContext('2d'); g.fillStyle = '#000'; g.fillRect(0, 0, w, h); g.drawImage(img, 0, 0, w, h);
+      URL.revokeObjectURL(url);
+      c.toBlob(function(b){ b ? resolve({ blob:b, preview:c.toDataURL('image/jpeg', .5) }) : reject(new Error('Could not read that picture')); }, 'image/jpeg', .88);
+    };
+    img.onerror = function(){ URL.revokeObjectURL(url); reject(new Error('"' + file.name + '" is not a picture we can read')); };
+    img.src = url;
+  });
+}
+async function addFiles(files){
+  $('upMsg').textContent = '';
+  for(var n = 0; n < files.length; n++){
+    var f = files[n];
+    if(['image/jpeg','image/png','image/webp'].indexOf(f.type) < 0){ $('upMsg').textContent = '"' + f.name + '" is not a JPEG, PNG or WebP picture.'; continue; }
+    try{
+      var r = await resizeToJpeg(f);
+      if(r.blob.size > 5 * 1024 * 1024){ $('upMsg').textContent = '"' + f.name + '" is still over 5 MB after resizing.'; continue; }
+      S.slides.push({ id:null, path:null, title:f.name.replace(/\.[^.]+$/, '').slice(0, 80), seconds:10, active:true, starts:'', ends:'', courts:null, isNew:true, blob:r.blob, preview:r.preview });
+    }catch(e){ $('upMsg').textContent = e.message; }
+  }
+  setDirty(true); renderSlides();
+}
+
+// ============================ SAVE ============================
+function randName(){ return Date.now() + '-' + Math.random().toString(36).slice(2, 8) + '.jpg'; }
+async function saveAll(){
+  var bad = S.slides.filter(function(s){ var n = parseInt(s.seconds, 10); return !(n >= 3 && n <= 120); });
+  if(bad.length){ $('saveMsg').textContent = 'Seconds must be between 3 and 120.'; return; }
+  for(var q = 0; q < S.slides.length; q++){
+    var s0 = S.slides[q];
+    if(s0.courts && !s0.courts.length){ $('saveMsg').className = 'err'; $('saveMsg').textContent = '"' + (s0.title || 'A slide') + '": tick at least one court, or choose All courts.'; return; }
+    if(s0.starts && s0.ends && s0.ends < s0.starts){ $('saveMsg').textContent = '"' + (s0.title || 'A slide') + '": the end date is before the start date.'; return; }
+  }
+  $('save').disabled = true; $('discard').disabled = true; $('saveMsg').className = 'err'; $('saveMsg').textContent = 'Saving...';
+  try{
+    // 1. upload new pictures and create their rows
+    for(var i = 0; i < S.slides.length; i++){
+      var s = S.slides[i]; if(!s.isNew) continue;
+      var path = S.clubId + '/' + randName();
+      await storage('POST', 'object/' + BUCKET + '/' + path, s.blob, 'image/jpeg');
+      var made = await api('POST', 'club_ads', { club_id:S.clubId, image_path:path, title:s.title || null, seconds:parseInt(s.seconds,10), sort_order:i, active:s.active,
+        starts_on:s.starts || null, ends_on:s.ends || null, court_names:s.courts }, { Prefer:'return=representation' });
+      s.id = made[0].id; s.path = path; s.isNew = false; delete s.blob;
+    }
+    // 2. update existing rows (title, seconds, dates, courts, active, order)
+    for(var j = 0; j < S.slides.length; j++){
+      var t = S.slides[j];
+      await api('PATCH', 'club_ads?id=eq.' + t.id, { title:t.title || null, seconds:parseInt(t.seconds,10), sort_order:j, active:t.active,
+        starts_on:t.starts || null, ends_on:t.ends || null, court_names:t.courts });
+    }
+    // 3. removed slides: row first (stops showing), then the picture
+    for(var k = 0; k < S.removed.length; k++){
+      var r = S.removed[k];
+      await api('DELETE', 'club_ads?id=eq.' + r.id);
+      try{ await storage('DELETE', 'object/' + BUCKET + '/' + r.path); }catch(e){}
+    }
+    S.removed = [];
+    setDirty(false); renderSlides();
+    $('saveMsg').className = 'err ok'; $('saveMsg').textContent = 'Saved. Your tablets pick this up within a minute.';
+  }catch(e){
+    $('saveMsg').className = 'err'; $('saveMsg').textContent = 'Could not save: ' + e.message + ' (nothing is lost: fix the problem and press Save again).';
+    $('save').disabled = false; $('discard').disabled = false;
+  }
+}
+async function saveIdle(){
+  var secs = parseInt($('idleSecs').value, 10);
+  if(!(secs >= 20 && secs <= 3600)){ $('idleMsg').className = 'err'; $('idleMsg').textContent = 'Use 20 to 3600 seconds.'; return; }
+  try{
+    await api('POST', 'rpc/court_club_save_settings', { p_club:S.clubId, p_idle_enabled:$('idleOn').checked, p_idle_after_seconds:secs });
+    $('idleMsg').className = 'err ok'; $('idleMsg').textContent = 'Saved.';
+  }catch(e){ $('idleMsg').className = 'err'; $('idleMsg').textContent = 'Could not save: ' + e.message; }
+}
+
+// ============================ SHELL ============================
+function show(view){
+  ['loginView','deniedView','appView'].forEach(function(v){ $(v).classList.toggle('hidden', v !== view); });
+  $('signout').classList.toggle('hidden', view === 'loginView');
+  if(view !== 'appView') $('saveBar').classList.add('hidden');
+  $('who').textContent = S.email || '';
+}
+async function enter(){
+  await loadClubs();
+  if(!S.clubs.length){ $('deniedText').textContent = (S.email || 'This account') + ' does not manage a club yet. Ask Padeja to add you as a club manager.'; show('deniedView'); return; }
+  $('clubSel').innerHTML = S.clubs.map(function(c){ return '<option value="' + esc(c.id) + '">' + esc(c.name) + '</option>'; }).join('');
+  $('clubSel').classList.toggle('hidden', S.clubs.length < 2);
+  S.clubId = S.clubs[0].id; $('clubSel').value = S.clubId;
+  show('appView'); await loadClub();
+}
+var mode = 'magic';
+function setMode(m){
+  mode = m; $('passField').classList.toggle('hidden', m !== 'pass');
+  $('tabMagic').className = 'btn sm' + (m === 'magic' ? '' : ' alt'); $('tabPass').className = 'btn sm' + (m === 'pass' ? '' : ' alt');
+  $('loginGo').textContent = m === 'pass' ? 'Sign in' : 'Email me a sign-in link'; $('loginMsg').textContent = '';
+}
+async function loginGo(){
+  var email = $('email').value.trim(); $('loginMsg').className = 'err';
+  if(!email){ $('loginMsg').textContent = 'Enter your email.'; return; }
+  $('loginGo').disabled = true;
+  try{
+    if(mode === 'pass'){ await loginPassword(email, $('password').value); await enter(); }
+    else { await sendMagicLink(email); $('loginMsg').className = 'err ok'; $('loginMsg').textContent = 'Check your email for the sign-in link.'; }
+  }catch(e){ $('loginMsg').textContent = e.message; }
+  $('loginGo').disabled = false;
+}
+function wire(){
+  $('tabMagic').onclick = function(){ setMode('magic'); }; $('tabPass').onclick = function(){ setMode('pass'); };
+  $('loginGo').onclick = loginGo;
+  $('email').addEventListener('keydown', function(e){ if(e.key === 'Enter') loginGo(); });
+  $('password').addEventListener('keydown', function(e){ if(e.key === 'Enter') loginGo(); });
+  $('ssoGoogle').onclick = function(){ ssoStart('google'); }; $('ssoApple').onclick = function(){ ssoStart('apple'); }; $('ssoMicrosoft').onclick = function(){ ssoStart('azure'); };
+  $('signout').onclick = function(){ clearSession(); S.email = ''; show('loginView'); };
+  $('clubSel').onchange = async function(){
+    if(S.dirty && !confirm('You have unsaved changes for this club. Switch anyway and lose them?')){ $('clubSel').value = S.clubId; return; }
+    S.clubId = $('clubSel').value; await loadClub();
+  };
+  var drop = $('drop'), file = $('file');
+  drop.onclick = function(){ file.click(); };
+  file.onchange = function(){ if(file.files.length) addFiles(Array.prototype.slice.call(file.files)); file.value = ''; };
+  drop.addEventListener('dragover', function(e){ e.preventDefault(); drop.classList.add('over'); });
+  drop.addEventListener('dragleave', function(){ drop.classList.remove('over'); });
+  drop.addEventListener('drop', function(e){ e.preventDefault(); drop.classList.remove('over'); if(e.dataTransfer.files.length) addFiles(Array.prototype.slice.call(e.dataTransfer.files)); });
+  $('slides').addEventListener('change', onSlidesInput);
+  $('slides').addEventListener('input', function(e){ if(e.target.type === 'text' || e.target.type === 'number') onSlidesInput(e); });
+  $('slides').addEventListener('click', onSlidesClick);
+  $('save').onclick = saveAll;
+  $('discard').onclick = async function(){ if(confirm('Throw away your unsaved changes?')) await loadClub(); };
+  $('saveIdle').onclick = saveIdle;
+  window.addEventListener('beforeunload', function(e){ if(S.dirty){ e.preventDefault(); e.returnValue = ''; } });
+}
+(async function boot(){
+  wire(); setMode('magic');
+  var h = takeHashSession();
+  if(h && h.error){ show('loginView'); $('loginMsg').textContent = h.error; return; }
+  if(!S.token){
+    var stored = null; try{ stored = localStorage.getItem(LS_KEY); }catch(e){}
+    if(stored){ S.refresh = stored; try{ await refreshSession(); }catch(e){ clearSession(); } }
+  }
+  if(S.token){ try{ await enter(); }catch(e){ show('loginView'); $('loginMsg').textContent = e.message; } }
+  else show('loginView');
+})();
+})();
+</script>
+</body>
+</html>

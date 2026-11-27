@@ -1,0 +1,580 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="robots" content="noindex" />
+<title>Padeja Admin</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@400;500;600;700;800;900&display=swap">
+<style>
+  /* Tokens: DESIGN.md section 8 (web). Do not add colours here; add them to DESIGN.md first. */
+  :root{
+    --bg:#0A1624; --card:#162035; --border:#1E3050; --deep:#0D1B2E;
+    --brand:#3BC8F5; --secondary:#8AA4C0; --tertiary:#5A7A99; --text:#FFFFFF;
+    --win:#3DE39E; --loss:#F56040; --draw:#F5B83D; --orange:#F09537;
+    --green:#35D6A4; --teal:#00D4AA; --danger:#E24B4A; --success:#1D9E75;
+    --radius:12px; --radius-lg:14px; --radius-sm:10px;
+    --body:"Hanken Grotesk",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:radial-gradient(900px 500px at 0% -10%, rgba(59,200,245,.08), transparent 60%), var(--bg);
+    color:var(--text);font-family:var(--body);min-height:100vh;-webkit-font-smoothing:antialiased}
+  a{color:var(--brand)}
+  button,input,select,textarea{font-family:inherit;font-size:14px}
+  button{cursor:pointer}
+  .hidden{display:none !important}
+
+  header{display:flex;align-items:center;gap:14px;padding:14px 22px;border-bottom:1px solid var(--border);position:sticky;top:0;background:var(--bg);z-index:5}
+  .logo{font-weight:900;font-size:20px;letter-spacing:.5px}
+  .logo i{color:var(--brand);font-style:normal}
+  .logo small{display:block;font-size:11px;font-weight:700;letter-spacing:.2em;text-transform:uppercase;color:var(--tertiary)}
+  header .right{margin-left:auto;display:flex;gap:10px;align-items:center;color:var(--secondary);font-size:13px}
+  .wrap{max-width:1280px;margin:0 auto;padding:22px}
+
+  .btn{background:var(--brand);color:#000;border:0;border-radius:var(--radius-sm);padding:10px 16px;font-weight:700}
+  .btn:hover{filter:brightness(1.07)}
+  .btn.alt{background:transparent;color:var(--text);border:1px solid var(--border)}
+  .btn.danger{background:var(--danger);color:#fff}
+  .btn.sm{padding:7px 12px;font-size:13px}
+  .btn:disabled{opacity:.5;cursor:default}
+
+  .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius-lg);padding:18px;margin-bottom:16px}
+  .card h2{font-size:16px;font-weight:800;margin-bottom:4px}
+  .sub{color:var(--secondary);font-size:13px;margin-bottom:14px}
+  .muted{color:var(--secondary)} .faint{color:var(--tertiary)}
+  .err{color:var(--loss);font-size:14px;font-weight:600;min-height:20px;margin-top:8px}
+  .ok{color:var(--win)}
+
+  /* login */
+  .login{max-width:440px;margin:8vh auto}
+  .login h1{font-size:26px;font-weight:900;margin-bottom:4px}
+  .field{margin-bottom:12px}
+  .field label{display:block;font-size:11px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--secondary);margin-bottom:6px}
+  input,select,textarea{width:100%;background:var(--deep);color:var(--text);border:1px solid var(--border);border-radius:var(--radius-sm);padding:10px 12px}
+  input::placeholder,textarea::placeholder{color:var(--tertiary)}
+  input[type=checkbox]{width:auto}
+  .sso{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin:14px 0}
+  .or{display:flex;align-items:center;gap:10px;color:var(--tertiary);font-size:12px;margin:14px 0}
+  .or::before,.or::after{content:"";flex:1;height:1px;background:var(--border)}
+  .tabs2{display:flex;gap:6px;margin-bottom:12px}
+  .tabs2 button{flex:1}
+
+  /* nav */
+  .nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:18px}
+  .nav button{background:var(--card);color:var(--secondary);border:1px solid var(--border);border-radius:999px;padding:8px 16px;font-weight:700}
+  .nav button.on{background:var(--brand);color:#000;border-color:var(--brand)}
+  .nav a{background:transparent;color:var(--secondary);border:1px dashed var(--border);border-radius:999px;padding:8px 16px;font-weight:700;text-decoration:none;font-size:14px}
+
+  /* summary */
+  .stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+  .stat{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;cursor:pointer}
+  .stat.on{border-color:var(--brand)}
+  .stat b{display:block;font-size:30px;font-weight:900}
+  .stat span{font-size:11px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--secondary)}
+
+  .toolbar{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:12px}
+  .toolbar input{max-width:260px} .toolbar select{max-width:260px}
+
+  table{width:100%;border-collapse:collapse}
+  th,td{text-align:left;padding:10px 10px;border-bottom:1px solid var(--border);font-size:14px;vertical-align:middle}
+  th{font-size:11px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--tertiary)}
+  tr.row:hover{background:rgba(255,255,255,.03)}
+  .scroll{overflow-x:auto}
+  .chip{display:inline-block;border-radius:999px;padding:3px 10px;font-size:11px;font-weight:800;letter-spacing:.06em;text-transform:uppercase;background:var(--border);color:var(--secondary);white-space:nowrap}
+  .chip.good{background:rgba(61,227,158,.15);color:var(--win)}
+  .chip.warn{background:rgba(245,184,61,.15);color:var(--draw)}
+  .chip.bad{background:rgba(226,75,74,.18);color:var(--loss)}
+  .chip.info{background:rgba(59,200,245,.15);color:var(--brand)}
+  .mini{font-size:12px;color:var(--secondary)}
+
+  dialog{background:var(--card);color:var(--text);border:1px solid var(--border);border-radius:16px;padding:22px;max-width:560px;width:calc(100% - 28px)}
+  dialog::backdrop{background:rgba(0,0,0,.6)}
+  dialog h3{font-size:18px;font-weight:800;margin-bottom:12px}
+  .two{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  .actions{display:flex;gap:10px;justify-content:flex-end;margin-top:16px;flex-wrap:wrap}
+  @media (max-width:640px){ .two{grid-template-columns:1fr} .wrap{padding:14px} }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo"><i>PADEJA</i> Admin<small>Tablets &amp; devices</small></div>
+  <div class="right"><span id="who"></span><button class="btn alt sm hidden" id="signout">Sign out</button></div>
+</header>
+
+<div class="wrap">
+
+  <!-- ===================== sign in ===================== -->
+  <div id="loginView" class="login hidden">
+    <div class="card">
+      <h1>Padeja Admin</h1>
+      <p class="sub">Sign in with your Padeja admin account.</p>
+
+      <div class="sso">
+        <button class="btn alt" id="ssoGoogle">Continue with Google</button>
+        <button class="btn alt" id="ssoApple">Continue with Apple</button>
+        <button class="btn alt" id="ssoMicrosoft" style="grid-column:1 / -1">Continue with Microsoft</button>
+      </div>
+      <div class="or">or</div>
+
+      <div class="tabs2">
+        <button class="btn sm" id="tabMagic">Email link</button>
+        <button class="btn alt sm" id="tabPass">Password</button>
+      </div>
+      <div class="field"><label for="email">Email</label><input id="email" type="email" autocomplete="username" placeholder="you@padeja.com"></div>
+      <div class="field hidden" id="passField"><label for="password">Password</label><input id="password" type="password" autocomplete="current-password"></div>
+      <button class="btn" style="width:100%" id="loginGo">Email me a sign-in link</button>
+      <div class="err" id="loginMsg"></div>
+    </div>
+  </div>
+
+  <!-- ===================== not an admin ===================== -->
+  <div id="deniedView" class="login hidden">
+    <div class="card">
+      <h1>No access</h1>
+      <p class="sub" id="deniedText">This account is not a Padeja admin.</p>
+    </div>
+  </div>
+
+  <!-- ===================== console ===================== -->
+  <div id="appView" class="hidden">
+    <div class="nav">
+      <button data-view="tablets" class="on">Tablets</button>
+      <button data-view="updates">App updates</button>
+      <a href="clubmanager.html">Club manager &rarr;</a>
+      <a href="hostmanager.html">Host manager &rarr;</a>
+      <a href="clubconsole.html">Club console &rarr;</a>
+      <a href="club-ads.html">Club tablet screens &rarr;</a>
+    </div>
+
+    <!-- ---------- tablets ---------- -->
+    <section id="viewTablets">
+      <div class="stats" id="stats"></div>
+      <div class="card">
+        <div class="toolbar">
+          <input id="q" type="search" placeholder="Search nickname, serial, model, club, court...">
+          <select id="fClub"><option value="">All clubs</option></select>
+          <button class="btn alt sm" id="reload">Refresh</button>
+        </div>
+        <div class="scroll">
+          <table>
+            <thead><tr><th>Status</th><th>Tablet</th><th>Club &middot; Court</th><th>Version</th><th>Target</th><th>Battery</th><th>Wi-Fi</th><th>Last seen</th><th></th></tr></thead>
+            <tbody id="devBody"></tbody>
+          </table>
+        </div>
+        <div class="mini" id="devEmpty" style="margin-top:10px"></div>
+      </div>
+    </section>
+
+    <!-- ---------- updates ---------- -->
+    <section id="viewUpdates" class="hidden">
+      <div class="card">
+        <h2>Fleet target version</h2>
+        <p class="sub">Every tablet is moved to this version when no match is in progress and its court has been quiet for 2 minutes. A club or single-tablet target overrides it. Android will not install a lower build number: to go back, publish the old code as a new higher release (the release workflow's rollback) and target that.</p>
+        <div class="two">
+          <div class="field"><label>Fleet target</label><select id="fleetTarget"></select></div>
+          <div class="field"><label>&nbsp;</label><button class="btn" id="fleetApply">Apply to all tablets</button></div>
+        </div>
+        <div class="two">
+          <div class="field"><label>Club target</label><select id="clubTargetClub"></select></div>
+          <div class="field"><label>Version</label><select id="clubTargetVer"></select></div>
+        </div>
+        <button class="btn alt sm" id="clubApply">Apply to this club's tablets</button>
+        <div class="err" id="updMsg"></div>
+      </div>
+      <div class="card">
+        <h2>Releases</h2>
+        <p class="sub">Published by GitHub Actions to <a href="https://github.com/PADEJA/padeja-court-tablet-releases/releases" target="_blank" rel="noopener">padeja-court-tablet-releases</a>.</p>
+        <div class="scroll"><table>
+          <thead><tr><th>Version</th><th>Published</th><th>Tablets on it</th><th>Notes</th></tr></thead>
+          <tbody id="relBody"></tbody>
+        </table></div>
+        <div class="mini" id="relMsg" style="margin-top:8px"></div>
+      </div>
+    </section>
+  </div>
+</div>
+
+<!-- ===================== edit tablet ===================== -->
+<dialog id="editDlg">
+  <h3 id="editTitle">Tablet</h3>
+  <div class="mini" id="editInfo" style="margin-bottom:12px"></div>
+  <div class="two">
+    <div class="field"><label>Nickname</label><input id="eNick" maxlength="60" placeholder="e.g. Court 5 left"></div>
+    <div class="field"><label>Active</label><select id="eActive"><option value="true">Active</option><option value="false">Disabled (ignored by the court)</option></select></div>
+  </div>
+  <div class="two">
+    <div class="field"><label>Club</label><select id="eClub"><option value="">Unassigned</option></select></div>
+    <div class="field"><label>Court</label><input id="eCourt" list="courtList" maxlength="40" placeholder="Court 5"><datalist id="courtList"></datalist></div>
+  </div>
+  <div class="mini" id="ePair" style="margin:-4px 0 10px"></div>
+  <div class="field"><label>Target version (this tablet only)</label><select id="eTarget"></select></div>
+  <div class="field"><label>Notes</label><textarea id="eNotes" rows="2" maxlength="500"></textarea></div>
+  <div class="err" id="eMsg"></div>
+  <div class="actions">
+    <button class="btn danger sm" id="eDelete" style="margin-right:auto">Delete</button>
+    <button class="btn alt" id="eCancel">Cancel</button>
+    <button class="btn" id="eSave">Save</button>
+  </div>
+</dialog>
+
+<script>
+(function(){
+'use strict';
+
+var SUPABASE_URL = 'https://odrckirnjavfptlfygbo.supabase.co';
+var SUPABASE_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im9kcmNraXJuamF2ZnB0bGZ5Z2JvIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzk1MzY3MzQsImV4cCI6MjA5NTExMjczNH0.rjoAQhEaTw6Sp-nGrQmYYvLdVKD7ewrKwG1PmMbyYgo';
+var RELEASES_API = 'https://api.github.com/repos/PADEJA/padeja-court-tablet-releases/releases?per_page=30';
+var LS_KEY = 'padeja_admin_refresh';
+var ONLINE_MS = 5 * 60 * 1000;      // tablets check in every minute; 5 quiet minutes = offline
+var DEV_COLS = 'id,serial,android_id,manufacturer,model,android_version,is_device_owner,app_version_code,app_version_name,battery_pct,charging,wifi_rssi,free_storage_mb,update_status,update_error,last_seen_at,first_seen_at,club_id,court_name,nickname,notes,target_version_name,active';
+
+var S = { token:null, refresh:null, uid:null, email:'', devices:[], clubs:[], clubName:{}, courts:[], clubSettings:{}, fleetTarget:null,
+          releases:[], statusFilter:'all', editing:null };
+var $ = function(id){ return document.getElementById(id); };
+function esc(v){ return String(v==null?'':v).replace(/[&<>"']/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]; }); }
+
+// ============================ AUTH (Supabase Auth over fetch) ============================
+function parseJwt(t){ try{ return JSON.parse(atob(t.split('.')[1].replace(/-/g,'+').replace(/_/g,'/'))); }catch(e){ return {}; } }
+function setSession(access, refresh){
+  S.token = access; S.refresh = refresh;
+  var p = parseJwt(access); S.uid = p.sub; S.email = p.email || '';
+  try{ localStorage.setItem(LS_KEY, refresh); }catch(e){}
+}
+function clearSession(){ S.token = S.refresh = S.uid = null; try{ localStorage.removeItem(LS_KEY); }catch(e){} }
+function authHeaders(){ return { apikey: SUPABASE_KEY, 'Content-Type':'application/json' }; }
+function backHere(){ return location.origin + location.pathname; }
+
+async function loginPassword(email, password){
+  var res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=password', { method:'POST', headers:authHeaders(), body:JSON.stringify({ email:email, password:password }) });
+  var d = await res.json();
+  if(!res.ok) throw new Error(d.error_description || d.msg || d.error || 'Sign-in failed');
+  setSession(d.access_token, d.refresh_token);
+}
+async function sendMagicLink(email){
+  // create_user:false = only existing Padeja accounts can get a link.
+  var res = await fetch(SUPABASE_URL + '/auth/v1/otp?redirect_to=' + encodeURIComponent(backHere()), { method:'POST', headers:authHeaders(), body:JSON.stringify({ email:email, create_user:false }) });
+  if(!res.ok){ var d = {}; try{ d = await res.json(); }catch(e){} throw new Error(d.msg || d.error_description || d.error || 'Could not send the link'); }
+}
+function ssoStart(provider){
+  location.href = SUPABASE_URL + '/auth/v1/authorize?provider=' + encodeURIComponent(provider) + '&redirect_to=' + encodeURIComponent(backHere());
+}
+async function refreshSession(){
+  var res = await fetch(SUPABASE_URL + '/auth/v1/token?grant_type=refresh_token', { method:'POST', headers:authHeaders(), body:JSON.stringify({ refresh_token:S.refresh }) });
+  if(!res.ok) throw new Error('session expired');
+  var d = await res.json(); setSession(d.access_token, d.refresh_token);
+}
+// Magic links and Google/Microsoft sign-in come back to this page with the session in the address fragment.
+function takeHashSession(){
+  var h = location.hash || '';
+  if(h.indexOf('error_description=') >= 0){
+    var e = new URLSearchParams(h.slice(1)).get('error_description');
+    history.replaceState(null, '', location.pathname + location.search);
+    return { error: e || 'Sign-in failed' };
+  }
+  if(h.indexOf('access_token=') >= 0){
+    var p = new URLSearchParams(h.slice(1));
+    var a = p.get('access_token'), r = p.get('refresh_token');
+    history.replaceState(null, '', location.pathname + location.search);
+    if(a && r){ setSession(a, r); return { ok:true }; }
+  }
+  return null;
+}
+
+// ============================ DATA ACCESS ============================
+async function api(method, path, body, retried){
+  var res = await fetch(SUPABASE_URL + '/rest/v1/' + path, {
+    method: method,
+    headers: { apikey:SUPABASE_KEY, Authorization:'Bearer ' + S.token, 'Content-Type':'application/json' },
+    body: body === undefined ? undefined : JSON.stringify(body)
+  });
+  if(res.status === 401 && !retried){ await refreshSession(); return api(method, path, body, true); }
+  if(!res.ok){ var t = await res.text(); throw new Error(res.status + ' ' + t); }
+  var ct = res.headers.get('content-type') || '';
+  return ct.indexOf('json') >= 0 ? res.json() : null;
+}
+function rpc(fn, args){ return api('POST', 'rpc/' + fn, args || {}); }
+
+async function loadAll(){
+  var r = await Promise.all([
+    api('GET', 'court_devices?select=' + DEV_COLS + '&order=last_seen_at.desc.nullslast&limit=2000'),
+    api('GET', 'clubs?select=id,name&order=name&limit=2000'),
+    api('GET', 'courts?select=club_id,name&active=eq.true&order=sort_order&limit=2000'),
+    api('GET', 'court_club_settings?select=club_id,target_version_name,idle_enabled,idle_after_seconds&limit=2000'),
+    api('GET', 'court_fleet_settings?select=target_version_name&limit=1')
+  ]);
+  S.devices = r[0] || []; S.clubs = r[1] || []; S.courts = r[2] || [];
+  S.clubName = {}; S.clubs.forEach(function(c){ S.clubName[c.id] = c.name; });
+  S.clubSettings = {}; (r[3]||[]).forEach(function(c){ S.clubSettings[c.club_id] = c; });
+  S.fleetTarget = (r[4] && r[4][0] && r[4][0].target_version_name) || null;
+}
+async function loadReleases(){
+  try{
+    var res = await fetch(RELEASES_API, { headers:{ Accept:'application/vnd.github+json' } });
+    if(!res.ok) throw new Error('GitHub answered ' + res.status);
+    var list = await res.json();
+    S.releases = list.filter(function(x){ return x && x.tag_name && !x.draft; }).map(function(x){
+      return { name: String(x.tag_name).replace(/^v/, ''), published: x.published_at, notes: x.body || '' };
+    });
+    $('relMsg').textContent = '';
+  }catch(e){
+    S.releases = [];
+    $('relMsg').textContent = 'Could not read the release list (' + e.message + '). Target versions can still be typed once a release exists.';
+  }
+}
+
+// ============================ STATUS LOGIC ============================
+function latestName(){ return S.releases.length ? S.releases[0].name : null; }
+function effectiveTarget(d){
+  var cs = d.club_id ? S.clubSettings[d.club_id] : null;
+  return d.target_version_name || (cs && cs.target_version_name) || S.fleetTarget || null;
+}
+function isOnline(d){ return d.last_seen_at && (Date.now() - new Date(d.last_seen_at).getTime()) < ONLINE_MS; }
+// One status per tablet, worst first.
+function statusOf(d){
+  if(!d.active) return { key:'disabled', label:'Disabled', cls:'' };
+  if(!d.club_id) return { key:'unassigned', label:'Unassigned', cls:'info' };
+  if(!isOnline(d)) return { key:'offline', label:'Offline', cls:'bad' };
+  if(d.update_status === 'failed') return { key:'failed', label:'Update failed', cls:'bad' };
+  var t = effectiveTarget(d);
+  if(t && d.app_version_name !== t) return { key:'behind', label:d.update_status ? 'Updating' : 'Update pending', cls:'warn' };
+  if(!t && latestName() && d.app_version_name !== latestName()) return { key:'behind', label:'Behind latest', cls:'warn' };
+  return { key:'ok', label:'Up to date', cls:'good' };
+}
+function ago(iso){
+  if(!iso) return 'never';
+  var s = Math.max(0, Math.round((Date.now() - new Date(iso).getTime())/1000));
+  if(s < 60) return s + 's ago'; if(s < 3600) return Math.round(s/60) + ' min ago';
+  if(s < 86400) return Math.round(s/3600) + ' h ago'; return Math.round(s/86400) + ' d ago';
+}
+function deviceLabel(d){
+  return d.nickname || ((d.manufacturer ? d.manufacturer + ' ' : '') + (d.model || 'Tablet'));
+}
+function deviceId(d){
+  return d.serial ? 'Serial ' + d.serial : (d.android_id ? 'Android ID ' + d.android_id : 'No id yet');
+}
+
+// ============================ RENDER: TABLETS ============================
+var STAT_DEFS = [
+  ['all','All tablets'], ['ok','Up to date'], ['behind','Needs update'], ['failed','Update failed'],
+  ['offline','Offline'], ['unassigned','Unassigned']
+];
+function renderStats(){
+  var counts = { all:S.devices.length };
+  STAT_DEFS.forEach(function(s){ if(s[0] !== 'all') counts[s[0]] = 0; });
+  S.devices.forEach(function(d){ var k = statusOf(d).key; if(counts[k] !== undefined) counts[k]++; });
+  $('stats').innerHTML = STAT_DEFS.map(function(s){
+    return '<div class="stat' + (S.statusFilter === s[0] ? ' on' : '') + '" data-stat="' + s[0] + '"><b>' + counts[s[0]] + '</b><span>' + esc(s[1]) + '</span></div>';
+  }).join('');
+}
+function renderClubFilter(){
+  var inUse = {}; S.devices.forEach(function(d){ if(d.club_id) inUse[d.club_id] = true; });
+  var cur = $('fClub').value;
+  $('fClub').innerHTML = '<option value="">All clubs</option>' + S.clubs.filter(function(c){ return inUse[c.id]; })
+    .map(function(c){ return '<option value="' + esc(c.id) + '">' + esc(c.name) + '</option>'; }).join('');
+  $('fClub').value = cur;
+}
+function renderDevices(){
+  renderStats();
+  var q = $('q').value.trim().toLowerCase(), club = $('fClub').value;
+  var rows = S.devices.filter(function(d){
+    if(S.statusFilter !== 'all' && statusOf(d).key !== S.statusFilter) return false;
+    if(club && d.club_id !== club) return false;
+    if(q){
+      var hay = [d.nickname, d.serial, d.android_id, d.model, d.manufacturer, d.court_name, S.clubName[d.club_id], d.notes].join(' ').toLowerCase();
+      if(hay.indexOf(q) < 0) return false;
+    }
+    return true;
+  });
+  $('devBody').innerHTML = rows.map(function(d){
+    var st = statusOf(d), t = effectiveTarget(d);
+    var where = d.club_id ? esc(S.clubName[d.club_id] || '?') + '<div class="mini">' + esc(d.court_name || '') + '</div>' : '<span class="faint">Not assigned</span>';
+    var batt = d.battery_pct == null ? '<span class="faint">-</span>' : esc(d.battery_pct) + '%' + (d.charging ? ' <span class="mini">charging</span>' : '');
+    var wifi = d.wifi_rssi == null ? '<span class="faint">-</span>' : esc(d.wifi_rssi) + ' dBm';
+    return '<tr class="row">' +
+      '<td><span class="chip ' + st.cls + '">' + esc(st.label) + '</span>' + (d.update_status === 'failed' && d.update_error ? '<div class="mini">' + esc(d.update_error) + '</div>' : '') + '</td>' +
+      '<td><b>' + esc(deviceLabel(d)) + '</b><div class="mini">' + esc(deviceId(d)) + (d.is_device_owner ? ' &middot; managed' : '') + '</div></td>' +
+      '<td>' + where + '</td>' +
+      '<td>' + esc(d.app_version_name || '-') + '</td>' +
+      '<td>' + (t ? esc(t) : '<span class="faint">none</span>') + '</td>' +
+      '<td>' + batt + '</td><td>' + wifi + '</td>' +
+      '<td>' + esc(ago(d.last_seen_at)) + '</td>' +
+      '<td><button class="btn alt sm" data-edit="' + esc(d.id) + '">Manage</button></td></tr>';
+  }).join('');
+  $('devEmpty').textContent = rows.length ? '' : (S.devices.length ? 'No tablets match this filter.' : 'No tablets have checked in yet. Install the app on a tablet and open it: it will appear here as Unassigned.');
+}
+
+// ============================ RENDER: UPDATES ============================
+function versionOptions(selected, inheritLabel){
+  var h = '<option value="">' + esc(inheritLabel) + '</option>';
+  var seen = {};
+  S.releases.forEach(function(r){ seen[r.name] = true; h += '<option value="' + esc(r.name) + '">' + esc(r.name) + (r === S.releases[0] ? ' (latest)' : '') + '</option>'; });
+  if(selected && !seen[selected]) h += '<option value="' + esc(selected) + '">' + esc(selected) + '</option>';
+  return h;
+}
+function renderUpdates(){
+  $('fleetTarget').innerHTML = versionOptions(S.fleetTarget, 'No fleet target (do not push)');
+  $('fleetTarget').value = S.fleetTarget || '';
+  var inUse = {}; S.devices.forEach(function(d){ if(d.club_id) inUse[d.club_id] = true; });
+  $('clubTargetClub').innerHTML = S.clubs.filter(function(c){ return inUse[c.id]; }).map(function(c){
+    return '<option value="' + esc(c.id) + '">' + esc(c.name) + '</option>'; }).join('') || '<option value="">(no club has tablets yet)</option>';
+  $('clubTargetVer').innerHTML = versionOptions(null, 'Clear this club\'s target');
+  var onVer = {}; S.devices.forEach(function(d){ var v = d.app_version_name || '?'; onVer[v] = (onVer[v]||0) + 1; });
+  $('relBody').innerHTML = S.releases.map(function(r, i){
+    var first = (r.notes || '').split('\n').filter(function(l){ return l.trim() && !/^SHA-256/i.test(l) && !/^Padeja Court Tablet/i.test(l); })[0] || '';
+    return '<tr><td><b>' + esc(r.name) + '</b>' + (i === 0 ? ' <span class="chip info">latest</span>' : '') + '</td><td>' + esc(r.published ? new Date(r.published).toLocaleString() : '') + '</td><td>' + (onVer[r.name] || 0) + '</td><td class="mini">' + esc(first) + '</td></tr>';
+  }).join('') || '<tr><td colspan="4" class="faint">No releases published yet.</td></tr>';
+}
+
+// ============================ EDIT DIALOG ============================
+function openEdit(id){
+  var d = S.devices.find(function(x){ return x.id === id; }); if(!d) return;
+  S.editing = d;
+  $('editTitle').textContent = deviceLabel(d);
+  $('editInfo').innerHTML = esc(deviceId(d)) + ' &middot; ' + esc([d.manufacturer, d.model].filter(Boolean).join(' ')) + ' &middot; Android ' + esc(d.android_version || '?') +
+    ' &middot; app ' + esc(d.app_version_name || '?') + ' &middot; free storage ' + esc(d.free_storage_mb == null ? '?' : d.free_storage_mb + ' MB') +
+    ' &middot; first seen ' + esc(d.first_seen_at ? new Date(d.first_seen_at).toLocaleDateString() : '?') + (d.is_device_owner ? ' &middot; device owner (silent updates)' : ' &middot; not device owner');
+  $('eNick').value = d.nickname || '';
+  $('eActive').value = d.active ? 'true' : 'false';
+  $('eClub').innerHTML = '<option value="">Unassigned</option>' + S.clubs.map(function(c){ return '<option value="' + esc(c.id) + '">' + esc(c.name) + '</option>'; }).join('');
+  $('eClub').value = d.club_id || '';
+  $('eCourt').value = d.court_name || '';
+  $('eNotes').value = d.notes || '';
+  $('eTarget').innerHTML = versionOptions(d.target_version_name, 'Use the club / fleet target');
+  $('eTarget').value = d.target_version_name || '';
+  $('eMsg').textContent = ''; $('eMsg').className = 'err';
+  fillCourts(); showPair();
+  $('editDlg').showModal();
+}
+function fillCourts(){
+  var club = $('eClub').value, names = {};
+  S.courts.forEach(function(c){ if(c.club_id === club) names[c.name] = true; });
+  S.devices.forEach(function(d){ if(d.club_id === club && d.court_name) names[d.court_name] = true; });
+  if(!Object.keys(names).length) for(var i = 1; i <= 8; i++) names['Court ' + i] = true;
+  $('courtList').innerHTML = Object.keys(names).sort(function(a,b){ return a.localeCompare(b, undefined, {numeric:true}); }).map(function(n){ return '<option value="' + esc(n) + '">'; }).join('');
+}
+function showPair(){
+  var club = $('eClub').value, court = $('eCourt').value.trim().toLowerCase(), me = S.editing;
+  if(!club || !court){ $('ePair').textContent = ''; return; }
+  var others = S.devices.filter(function(d){ return d.id !== me.id && d.club_id === club && (d.court_name || '').trim().toLowerCase() === court; });
+  $('ePair').textContent = others.length ? 'Paired with ' + others.length + ' other tablet' + (others.length > 1 ? 's' : '') + ' on this court: they stay in step for matches and the idle screen.' : 'No other tablet is on this court yet. Assign a second one to pair them.';
+}
+async function saveEdit(){
+  var d = S.editing; if(!d) return;
+  var club = $('eClub').value, court = $('eCourt').value.trim();
+  if(club && !court){ $('eMsg').textContent = 'Choose or type the court for this club.'; return; }
+  $('eSave').disabled = true; $('eMsg').textContent = ''; $('eMsg').className = 'err';
+  try{
+    await rpc('court_admin_update_device', { p_device_id: d.id, p_patch: {
+      club_id: club || null, court_name: club ? court : null,
+      nickname: $('eNick').value.trim() || null, notes: $('eNotes').value.trim() || null,
+      active: $('eActive').value === 'true', target_version_name: $('eTarget').value || null } });
+    $('editDlg').close(); await refresh();
+  }catch(e){ $('eMsg').textContent = 'Could not save: ' + e.message; }
+  $('eSave').disabled = false;
+}
+async function deleteDevice(){
+  var d = S.editing; if(!d) return;
+  if(!confirm('Delete "' + deviceLabel(d) + '" from the console?\n\nIf the tablet is still running it will register itself again as Unassigned.')) return;
+  try{ await rpc('court_admin_delete_device', { p_device_id: d.id }); $('editDlg').close(); await refresh(); }
+  catch(e){ $('eMsg').textContent = 'Could not delete: ' + e.message; }
+}
+
+// ============================ UPDATE ACTIONS ============================
+async function applyFleet(){
+  var v = $('fleetTarget').value || null;
+  if(!confirm(v ? 'Move EVERY tablet to version ' + v + '?\n\nEach installs it when no match is in progress and its court has been quiet for 2 minutes.' : 'Stop pushing a fleet target? Tablets keep whatever version they have.')) return;
+  try{ await rpc('court_admin_set_target', { p_scope:'fleet', p_id:null, p_version:v }); $('updMsg').className = 'err ok'; $('updMsg').textContent = 'Saved.'; await refresh(); }
+  catch(e){ $('updMsg').className = 'err'; $('updMsg').textContent = 'Could not save: ' + e.message; }
+}
+async function applyClub(){
+  var club = $('clubTargetClub').value, v = $('clubTargetVer').value || null;
+  if(!club) return;
+  if(!confirm((v ? 'Move every tablet at ' + (S.clubName[club]||'this club') + ' to ' + v : 'Clear the target for ' + (S.clubName[club]||'this club')) + '?')) return;
+  try{ await rpc('court_admin_set_target', { p_scope:'club', p_id:club, p_version:v }); $('updMsg').className = 'err ok'; $('updMsg').textContent = 'Saved.'; await refresh(); }
+  catch(e){ $('updMsg').className = 'err'; $('updMsg').textContent = 'Could not save: ' + e.message; }
+}
+
+// ============================ SHELL ============================
+async function refresh(){
+  await loadAll(); renderClubFilter(); renderDevices(); renderUpdates();
+}
+function show(view){
+  ['loginView','deniedView','appView'].forEach(function(v){ $(v).classList.toggle('hidden', v !== view); });
+  $('signout').classList.toggle('hidden', view === 'loginView');
+  $('who').textContent = S.email || '';
+}
+function setView(v){
+  document.querySelectorAll('.nav button').forEach(function(b){ b.classList.toggle('on', b.getAttribute('data-view') === v); });
+  $('viewTablets').classList.toggle('hidden', v !== 'tablets');
+  $('viewUpdates').classList.toggle('hidden', v !== 'updates');
+}
+async function enter(){
+  var ok = false;
+  try{ ok = (await rpc('is_super_admin')) === true; }catch(e){ ok = false; }
+  if(!ok){ $('deniedText').textContent = (S.email || 'This account') + ' is not a Padeja admin. Ask a super-admin to add you.'; show('deniedView'); return; }
+  show('appView');
+  await Promise.all([loadReleases(), loadAll()]);
+  renderClubFilter(); renderDevices(); renderUpdates();
+}
+
+var mode = 'magic';
+function setMode(m){
+  mode = m;
+  $('passField').classList.toggle('hidden', m !== 'pass');
+  $('tabMagic').className = 'btn sm' + (m === 'magic' ? '' : ' alt');
+  $('tabPass').className = 'btn sm' + (m === 'pass' ? '' : ' alt');
+  $('loginGo').textContent = m === 'pass' ? 'Sign in' : 'Email me a sign-in link';
+  $('loginMsg').textContent = '';
+}
+async function loginGo(){
+  var email = $('email').value.trim(); $('loginMsg').className = 'err';
+  if(!email){ $('loginMsg').textContent = 'Enter your email.'; return; }
+  $('loginGo').disabled = true;
+  try{
+    if(mode === 'pass'){ await loginPassword(email, $('password').value); await enter(); }
+    else { await sendMagicLink(email); $('loginMsg').className = 'err ok'; $('loginMsg').textContent = 'Check your email for the sign-in link.'; }
+  }catch(e){ $('loginMsg').textContent = e.message; }
+  $('loginGo').disabled = false;
+}
+
+function wire(){
+  $('tabMagic').onclick = function(){ setMode('magic'); };
+  $('tabPass').onclick = function(){ setMode('pass'); };
+  $('loginGo').onclick = loginGo;
+  $('password').addEventListener('keydown', function(e){ if(e.key === 'Enter') loginGo(); });
+  $('email').addEventListener('keydown', function(e){ if(e.key === 'Enter') loginGo(); });
+  $('ssoGoogle').onclick = function(){ ssoStart('google'); };
+  $('ssoApple').onclick = function(){ ssoStart('apple'); };
+  $('ssoMicrosoft').onclick = function(){ ssoStart('azure'); };
+  $('signout').onclick = function(){ clearSession(); S.email = ''; show('loginView'); };
+  document.querySelectorAll('.nav button').forEach(function(b){ b.onclick = function(){ setView(b.getAttribute('data-view')); }; });
+  $('reload').onclick = refresh;
+  $('q').addEventListener('input', renderDevices);
+  $('fClub').addEventListener('change', renderDevices);
+  $('stats').addEventListener('click', function(e){ var s = e.target.closest('[data-stat]'); if(!s) return; S.statusFilter = s.getAttribute('data-stat'); renderDevices(); });
+  $('devBody').addEventListener('click', function(e){ var b = e.target.closest('[data-edit]'); if(b) openEdit(b.getAttribute('data-edit')); });
+  $('eClub').addEventListener('change', function(){ fillCourts(); showPair(); });
+  $('eCourt').addEventListener('input', showPair);
+  $('eSave').onclick = saveEdit; $('eDelete').onclick = deleteDevice; $('eCancel').onclick = function(){ $('editDlg').close(); };
+  $('fleetApply').onclick = applyFleet; $('clubApply').onclick = applyClub;
+  setInterval(function(){ if(!$('appView').classList.contains('hidden') && !$('editDlg').open) refresh().catch(function(){}); }, 60000);
+}
+
+(async function boot(){
+  wire(); setMode('magic');
+  var h = takeHashSession();
+  if(h && h.error){ show('loginView'); $('loginMsg').textContent = h.error; return; }
+  if(!S.token){
+    var stored = null; try{ stored = localStorage.getItem(LS_KEY); }catch(e){}
+    if(stored){ S.refresh = stored; try{ await refreshSession(); }catch(e){ clearSession(); } }
+  }
+  if(S.token){ try{ await enter(); }catch(e){ show('loginView'); $('loginMsg').textContent = e.message; } }
+  else show('loginView');
+})();
+
+})();
+</script>
+</body>
+</html>
